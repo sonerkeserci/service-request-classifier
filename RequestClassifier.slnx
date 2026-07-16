@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="RequestClassifier.Api/RequestClassifier.Api.csproj" />
+  <Project Path="RequestClassifier.Domain/RequestClassifier.Domain.csproj" />
+</Solution>
