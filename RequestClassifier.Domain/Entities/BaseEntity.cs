@@ -4,7 +4,7 @@ using System.Text;
 
 namespace RequestClassifier.Domain.Entities
 {
-    internal class BaseEntity
+    public class BaseEntity
     {
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
