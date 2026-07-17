@@ -15,4 +15,8 @@
     <Folder Include="Controllers\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
