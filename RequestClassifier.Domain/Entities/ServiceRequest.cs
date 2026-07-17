@@ -21,10 +21,10 @@ namespace RequestClassifier.Domain.Entities
         public float? PredictionScore { get; set; }     // Confidence score of the predicted category
 
 
-        public int? PredictedCategoryId { get; set; }
+        public int? PredictedCategoryId { get; set; }   // Foreign key to the RequestCategory entity for the predicted category
         public RequestCategory? PredictedCategory { get; set; } // Category predicted by the system's machine learning model
 
-        public int? AssignedCategoryId { get; set; }
+        public int? AssignedCategoryId { get; set; }    // Foreign key to the RequestCategory entity for the assigned category
         public RequestCategory? AssignedCategory { get; set; }  // Category assigned by the system or personnel after reviewing the prediction
 
 

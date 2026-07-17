@@ -17,8 +17,8 @@ namespace RequestClassifier.Domain.Entities
         public Department Department { get; set; } = null!; // Navigation property to the Department entity
 
 
-        public ICollection<ServiceRequest> PredictedRequests { get; set; } = new List<ServiceRequest>();
+        public ICollection<ServiceRequest> PredictedRequests { get; set; } = new List<ServiceRequest>(); // Navigation property to the ServiceRequest entity, 1xN relationship for predicted requests
 
-        public ICollection<ServiceRequest> AssignedRequests { get; set; } = new List<ServiceRequest>();
+        public ICollection<ServiceRequest> AssignedRequests { get; set; } = new List<ServiceRequest>(); // Navigation property to the ServiceRequest entity, 1xN relationship for assigned requests
     }
 }
