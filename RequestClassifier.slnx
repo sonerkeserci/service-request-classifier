@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="RequestClassifier.Api/RequestClassifier.Api.csproj" />
   <Project Path="RequestClassifier.Domain/RequestClassifier.Domain.csproj" />
+  <Project Path="RequestClassifier.Infrastructure/RequestClassifier.Infrastructure.csproj" Id="8f1b00b6-cec0-4824-8a3f-3d355b6d6e4a" />
 </Solution>
