@@ -15,7 +15,13 @@ namespace RequestClassifier.Domain.Entities
         public string? Description { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        // Navigation property to the RequestCategory entity, 1xN relationship
+        public ICollection<RequestCategory> RequestCategories { get; set; } = new List<RequestCategory>();
+
+        // Navigation property to the ApplicationUser entity, 1xN relationship
+        public ICollection<ApplicationUser> Employees { get; set; } = new List<ApplicationUser>();
     }
 
 }
-}
+

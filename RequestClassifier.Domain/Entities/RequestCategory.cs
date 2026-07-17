@@ -13,7 +13,12 @@ namespace RequestClassifier.Domain.Entities
         public bool IsActive { get; set; } = true;
 
 
-        public Department Department { get; set; } = null!; // Navigation property to the Department entity
         public int DepartmentId { get; set; }               // Foreign key to the Department entity
+        public Department Department { get; set; } = null!; // Navigation property to the Department entity
+
+
+        public ICollection<ServiceRequest> PredictedRequests { get; set; } = new List<ServiceRequest>();
+
+        public ICollection<ServiceRequest> AssignedRequests { get; set; } = new List<ServiceRequest>();
     }
 }
