@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
     <ProjectReference Include="..\RequestClassifier.Domain\RequestClassifier.Domain.csproj" />
   </ItemGroup>
 
