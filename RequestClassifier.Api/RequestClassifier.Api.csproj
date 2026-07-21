@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
     <ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
   </ItemGroup>
