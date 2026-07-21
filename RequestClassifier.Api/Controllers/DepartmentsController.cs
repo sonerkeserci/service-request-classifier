@@ -47,7 +47,7 @@ namespace RequestClassifier.Api.Controllers
             var result = await _service.UpdateAsync(id, dto);
             if (!result)
                 return BadRequest();
-            return Ok(result);
+            return NoContent();
         }
 
     }

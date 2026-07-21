@@ -19,7 +19,7 @@ public class ServiceRequestService : IServiceRequestService
     {
         var serviceRequest = new ServiceRequest
         {
-            RequestNumber = $"TEMP-{Guid.NewGuid():N}", // Temporary request number until the entity is saved and gets an Id
+            RequestNumber = $"TMP-{Guid.NewGuid().ToString("N")[..8]}", // Temporary request number until the entity is saved and gets an Id
             Title = dto.Title.Trim(),
             Description = dto.Description.Trim(),
             RequesterFirstName = dto.RequesterFirstName.Trim(),
