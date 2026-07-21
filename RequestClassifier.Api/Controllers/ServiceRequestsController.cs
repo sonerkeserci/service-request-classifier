@@ -55,6 +55,8 @@ public class ServiceRequestsController : ControllerBase
     // Calls UpdateStatusAsync to change the request status
     // and create a new status history record.
     [HttpPut("{id:int}/status")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStatus(int id, UpdateRequestStatusDto dto)
     {
         var result = await _service.UpdateStatusAsync(id, dto);

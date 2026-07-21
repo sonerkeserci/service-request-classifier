@@ -40,6 +40,8 @@ namespace RequestClassifier.Api.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update (UpdateRequestCategoryDto dto, int id)
         {
             var result = await _service.UpdateAsync(id,dto);
