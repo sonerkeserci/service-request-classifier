@@ -65,4 +65,12 @@ public class ServiceRequestsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("{id:int}/histories")]
+    public async Task<IActionResult> GetStatusHistory(int id)
+    {
+        var history = await _service.GetStatusHistoryAsync(id);
+
+        if (history == null) return NotFound();
+        return Ok(history);
+    }
 }
