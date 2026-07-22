@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RequestClassifier.Application.DTOs.Auth;
 using RequestClassifier.Application.Interfaces;
 
@@ -26,6 +27,7 @@ namespace RequestClassifier.Api.Controllers
             return Ok(result);            
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost("employees")]
         public async Task<IActionResult> CreateEmployee(CreateEmployeeDto dto)
         { 
