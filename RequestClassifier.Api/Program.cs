@@ -5,6 +5,9 @@ using RequestClassifier.Infrastructure.Data;
 using RequestClassifier.Application.Interfaces;
 using RequestClassifier.Application.Services;
 using RequestClassifier.Infrastructure.Data.Seed;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +32,50 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// Read JWT configuration values from appsettings.json.
+var jwtSettings = builder.Configuration.GetSection("Jwt");
+
+// Configure JWT Bearer authentication for incoming API requests.
+builder.Services
+    .AddAuthentication(options =>
+    {
+        // Use JWT Bearer as the default authentication scheme.
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+
+        // Use JWT Bearer when an unauthenticated request must be challenged.
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        // Define how incoming JWT tokens will be validated.
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            // Ensure the token was issued by the expected issuer.
+            ValidateIssuer = true,
+
+            // Ensure the token was created for the expected audience.
+            ValidateAudience = true,
+
+            // Reject expired tokens.
+            ValidateLifetime = true,
+
+            // Validate the token signature using the configured secret key.
+            ValidateIssuerSigningKey = true,
+
+            // Expected token issuer.
+            ValidIssuer = jwtSettings["Issuer"],
+
+            // Expected token audience.
+            ValidAudience = jwtSettings["Audience"],
+
+            // Secret key used to verify the token signature.
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]!)),
+
+            // Do not allow extra time after the token expiration date.
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -48,8 +95,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthentication();    // Authenticate the user from the JWT token before authorization is checked.
+app.UseAuthorization();     // Check whether the authenticated user has permission to access the endpoint.
 
 app.MapControllers();
 
