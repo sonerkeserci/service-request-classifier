@@ -4,6 +4,7 @@ using RequestClassifier.Domain.Entities;
 using RequestClassifier.Infrastructure.Data;
 using RequestClassifier.Application.Interfaces;
 using RequestClassifier.Application.Services;
+using RequestClassifier.Infrastructure.Data.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,5 +52,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Used for one-time database seeding. Comment out after the initial run.
+/*
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+
+    await DatabaseSeeder.SeedAsync(context);
+}
+*/
 
 app.Run();
