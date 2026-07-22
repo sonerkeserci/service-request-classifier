@@ -13,4 +13,6 @@ public interface IServiceRequestService
     Task<List<ServiceRequestDetailDto>> GetAllAsync();
 
     Task<bool> UpdateStatusAsync(int id, UpdateRequestStatusDto dto);   // Input: id, UpdateRequestStatusDto, Output: bool (true if successful, false if not)
+
+    Task<List<RequestStatusHistoryDto>?> GetStatusHistoryAsync(int requestId);
 }

@@ -134,6 +134,31 @@ public class ServiceRequestService : IServiceRequestService
         return true;
     }
 
+    public async Task<List<RequestStatusHistoryDto>?> GetStatusHistoryAsync(
+    int requestId)
+    {
+        // Check whether the service request exists before retrieving its history.
+        var requestExists = await _context.ServiceRequests
+            .AnyAsync(r => r.Id == requestId);
+
+        if (!requestExists)
+            return null;
+
+        // Retrieve all status changes for the selected service request.
+        return await _context.RequestStatusHistories
+            .Where(h => h.ServiceRequestId == requestId)
+            .OrderBy(h => h.ChangedAt)
+            .Select(h => new RequestStatusHistoryDto
+            {
+                Id = h.Id,
+                OldStatus = h.OldStatus,
+                NewStatus = h.NewStatus,
+                Description = h.Description,
+                ChangedAt = h.ChangedAt
+            })
+            .ToListAsync();
+    }
+
     // Private helper method to map ServiceRequest entity to ServiceRequestDetailDto to avoid code duplication
     private static ServiceRequestDetailDto MapToDetailDto(ServiceRequest request)
     {
