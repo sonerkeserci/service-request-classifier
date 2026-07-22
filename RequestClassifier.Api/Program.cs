@@ -78,6 +78,8 @@ builder.Services
         };
     });
 
+
+
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -85,6 +87,20 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Create the initial application roles and administrator account.
+using (var scope = app.Services.CreateScope())
+{
+    var userManager = scope.ServiceProvider
+        .GetRequiredService<UserManager<ApplicationUser>>();
+
+    var roleManager = scope.ServiceProvider
+        .GetRequiredService<RoleManager<IdentityRole>>();
+
+    await IdentitySeeder.SeedAsync(
+        userManager,
+        roleManager);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
