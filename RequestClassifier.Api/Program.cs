@@ -27,6 +27,8 @@ builder.Services.AddScoped<IServiceRequestService, ServiceRequestService>();
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 // Register the RequestCategoryService as the implementation of IRequestCategoryService
 builder.Services.AddScoped<IRequestCategoryService, RequestCategoryService>();
+// Register the authentication service.
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
