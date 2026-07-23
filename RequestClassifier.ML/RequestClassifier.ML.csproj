@@ -14,4 +14,11 @@
     <ProjectReference Include="..\RequestClassifier.Domain\RequestClassifier.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Models\" />
+    <Folder Include="Data\" />
+    <Folder Include="TrainedModels\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>
