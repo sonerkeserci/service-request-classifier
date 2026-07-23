@@ -8,6 +8,7 @@ using RequestClassifier.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,7 +85,27 @@ builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Define JWT Bearer authentication in the Swagger document
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Description = "Enter the JWT token."
+    });
+
+    // Allow Swagger requests to include the JWT Bearer token.
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [
+            new OpenApiSecuritySchemeReference(
+                "Bearer",
+                document)
+        ] = []
+    });
+});
 
 var app = builder.Build();
 
