@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
     <ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
+    <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
   </ItemGroup>
 
 </Project>

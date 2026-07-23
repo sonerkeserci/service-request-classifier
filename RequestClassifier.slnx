@@ -3,4 +3,5 @@
   <Project Path="RequestClassifier.Application/RequestClassifier.Application.csproj" Id="deabe97f-be08-49b3-bc33-2d3ef67c4875" />
   <Project Path="RequestClassifier.Domain/RequestClassifier.Domain.csproj" />
   <Project Path="RequestClassifier.Infrastructure/RequestClassifier.Infrastructure.csproj" Id="8f1b00b6-cec0-4824-8a3f-3d355b6d6e4a" />
+  <Project Path="RequestClassifier.ML/RequestClassifier.ML.csproj" Id="09f525aa-dd10-47da-aab5-83f23befcf8a" />
 </Solution>
