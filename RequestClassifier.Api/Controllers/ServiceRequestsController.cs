@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RequestClassifier.Application.DTOs.ServiceRequests;
 using RequestClassifier.Application.Interfaces;
 
@@ -14,6 +15,7 @@ public class ServiceRequestsController : ControllerBase
         _service = service;
     }
 
+    [Authorize(Roles = "Admin,Employee")]
     [HttpGet]
     public async Task<IActionResult> GetAll() // Calls GetAllAsync from the service and returns all ServiceRequests.
     {
@@ -23,6 +25,7 @@ public class ServiceRequestsController : ControllerBase
 
     // Calls GetByIdAsync to find a single request by its database Id.
     // Returns 404 if the request does not exist.
+    [Authorize(Roles = "Admin,Employee")]
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -35,7 +38,7 @@ public class ServiceRequestsController : ControllerBase
     // Sends the incoming DTO to CreateAsync.
     // The service creates and saves the request, then returns its details.
     [HttpPost]
-    public async Task<IActionResult> Create (CreateServiceRequestDto dto)
+    public async Task<IActionResult> Create(CreateServiceRequestDto dto)
     {
         var result = await _service.CreateAsync(dto);
         return Ok(result);
@@ -44,7 +47,7 @@ public class ServiceRequestsController : ControllerBase
     // Calls TrackAsync using the request number and requester email.
     // Returns the request details if both values match.
     [HttpPost("track")]
-    public async Task<IActionResult> Track (TrackServiceRequestDto dto)
+    public async Task<IActionResult> Track(TrackServiceRequestDto dto)
     {
         var result = await _service.TrackAsync(dto);
         if (result == null)
@@ -54,13 +57,14 @@ public class ServiceRequestsController : ControllerBase
 
     // Calls UpdateStatusAsync to change the request status
     // and create a new status history record.
+    [Authorize(Roles = "Admin,Employee")]
     [HttpPut("{id:int}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateStatus(int id, UpdateRequestStatusDto dto)
     {
         var result = await _service.UpdateStatusAsync(id, dto);
-        if(!result)
+        if (!result)
             return NotFound();
         return NoContent();
     }
