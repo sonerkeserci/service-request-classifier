@@ -1,6 +1,6 @@
-## Request Classifier
+## Request Classifier (In Progress)
 
-Municipal service request classification project.
+Municipal service request classification project. 
 
 ## Application Flow
 
@@ -20,18 +20,16 @@ flowchart TD
     K --> L
     L --> M[Request status is updated]
     M --> N[RequestStatusHistory is stored]
+```
 
 ## Structure
 
+```mermaid
 flowchart TB
     API[RequestClassifier.Api<br/>Controllers, JWT, Swagger]
-
     APP[RequestClassifier.Application<br/>DTOs, Interfaces, Services]
-
     INF[RequestClassifier.Infrastructure<br/>EF Core, Identity, SQL Server]
-
     DOMAIN[RequestClassifier.Domain<br/>Entities, Enums]
-
     ML[RequestClassifier.ML<br/>Training, Prediction, Model]
 
     API --> APP
@@ -42,3 +40,4 @@ flowchart TB
     INF --> APP
     INF --> DOMAIN
     ML --> DOMAIN
+```
