@@ -26,7 +26,26 @@ public class ServiceRequestModelTrainer
                 trimWhitespace: true);
 
         // Use 80% of the data for training and 20% for testing.
-        var split = _mlContext.Data.TrainTestSplit(data, testFraction: 0.20, seed: 42);
+        var split = _mlContext.Data.TrainTestSplit(
+            data, 
+            testFraction: 0.20, 
+            seed: 42);
+
+        // Count the rows in the training and test datasets.
+        var trainRowCount = _mlContext.Data
+            .CreateEnumerable<ServiceRequestTrainingData>(
+                split.TrainSet,
+                reuseRowObject: false)
+            .Count();
+
+        var testRowCount = _mlContext.Data
+            .CreateEnumerable<ServiceRequestTrainingData>(
+                split.TestSet,
+                reuseRowObject: false)
+            .Count();
+
+        Console.WriteLine($"Training rows: {trainRowCount}");
+        Console.WriteLine($"Test rows: {testRowCount}");
 
         // Define the training pipeline.
         // This block only describes the sequence of transformations and the trainer.
