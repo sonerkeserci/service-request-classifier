@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="MLModels\service-request-model.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="MLModels\service-request-model.zip">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
@@ -21,10 +31,6 @@
     <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
     <ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
     <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="MLModels\" />
   </ItemGroup>
 
 </Project>
