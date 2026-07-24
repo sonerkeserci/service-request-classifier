@@ -28,9 +28,11 @@ public class ServiceRequestModelTrainer
         // Use 80% of the data for training and 20% for testing.
         var split = _mlContext.Data.TrainTestSplit(data, testFraction: 0.20, seed: 42);
 
-        // Convert category names into numeric labels.
+        // Define the training pipeline.
+        // This block only describes the sequence of transformations and the trainer.
+        // No training happens until Fit is called.
         var pipeline = _mlContext.Transforms.Conversion
-            .MapValueToKey(
+                    .MapValueToKey(
                 outputColumnName: "Label",
                 inputColumnName: nameof(ServiceRequestTrainingData.Category))
 
@@ -48,10 +50,13 @@ public class ServiceRequestModelTrainer
                         featureColumnName: "Features"));    // Column incluing featurizedtext   
 
         // Train the model using the training data.
-        var model = pipeline.Fit(split.TrainSet); // "Pipeline" is the recipe. "Fit" method applies the recipe to the data and creates the real model.
+        var model = pipeline.
+            Fit(split.TrainSet); // "Pipeline" is the recipe. "Fit" method applies the recipe to the data and creates the real model.
 
-        // Generate predictions for the test data.
-        var predictions = model.Transform(split.TestSet); // "Transform" method applies the trained model to test data. Creates 3 column(Label,Score,PredictedLabel).
+        // Apply the trained model to the test data. Returns a IDataView
+        // The result keeps the existing columns and adds prediction columns such as Score and PredictedLabel. 
+        var predictions = model.
+            Transform(split.TestSet);
 
         // Measure the performance of the trained model.
         var metrics = _mlContext.MulticlassClassification.Evaluate(
@@ -67,18 +72,23 @@ public class ServiceRequestModelTrainer
             Directory.CreateDirectory(modelDirectory);
         }
 
-        // Define the transformation that converts the predicted numeric key
-        // back to the original category name.
+        // Define the key-to-value conversion.
+        // "Estimator" only describes how PredictedLabel will be converted
+        // from a numeric key back to the original category name.
         var keyToValueEstimator =
             _mlContext.Transforms.Conversion.MapKeyToValue(
                 outputColumnName: "PredictedLabel",
                 inputColumnName: "PredictedLabel");
 
-        // Fit the transformation to the prediction schema.
-        var keyToValueTransformer = keyToValueEstimator.Fit(predictions);
+        // Fit the estimator to the prediction schema and create a usable transformer.
+        // This does not retrain the classification model.
+        var keyToValueTransformer =
+            keyToValueEstimator.
+            Fit(predictions);
 
-        // Append the fitted transformation to the trained model.
-        var finalModel = model.Append(keyToValueTransformer);
+        // Append: Add the fitted key-to-value transformer to the trained classification model.
+        var finalModel = model.
+            Append(keyToValueTransformer);
 
         // Save the final model so it can be loaded by the API later.
         _mlContext.Model.Save(
