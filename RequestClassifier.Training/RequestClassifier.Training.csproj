@@ -8,6 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Data\service-requests.tsv" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Data\service-requests.tsv">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
   </ItemGroup>
 
