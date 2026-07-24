@@ -48,10 +48,10 @@ public class ServiceRequestModelTrainer
                         featureColumnName: "Features"));    // Column incluing featurizedtext   
 
         // Train the model using the training data.
-        var model = pipeline.Fit(split.TrainSet); // Pipeline is the recipe. Fit applies the recipe to the data and creates the real model.
+        var model = pipeline.Fit(split.TrainSet); // "Pipeline" is the recipe. "Fit" method applies the recipe to the data and creates the real model.
 
         // Generate predictions for the test data.
-        var predictions = model.Transform(split.TestSet); // Transform applies the trained model to test data. Returns 3 result(Label,Score,PredictedLabel).
+        var predictions = model.Transform(split.TestSet); // "Transform" method applies the trained model to test data. Creates 3 column(Label,Score,PredictedLabel).
 
         // Measure the performance of the trained model.
         var metrics = _mlContext.MulticlassClassification.Evaluate(
