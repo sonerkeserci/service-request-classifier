@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="TrainedModels\**" />
+    <EmbeddedResource Remove="TrainedModels\**" />
+    <None Remove="TrainedModels\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Data\service-requests.tsv" />
   </ItemGroup>
 
@@ -19,10 +25,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="TrainedModels\" />
   </ItemGroup>
 
 </Project>
