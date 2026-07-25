@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.OpenApi;
+using Microsoft.Extensions.ML;
+using RequestClassifier.ML.Models;
+using RequestClassifier.ML.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -106,6 +109,35 @@ builder.Services.AddSwaggerGen(options =>
         ] = []
     });
 });
+
+/* ML scope */
+
+var modelPath = Path.Combine(
+    builder.Environment.ContentRootPath,
+    "MLModels",
+    "service-request-model.zip");
+
+if (!File.Exists(modelPath))
+{
+    throw new FileNotFoundException(
+        "The trained service request model could not be found.",
+        modelPath);
+}
+
+// Register a thread-safe prediction engine pool that loads the trained model.
+builder.Services
+    .AddPredictionEnginePool<
+        ServiceRequestTrainingData,
+        ServiceRequestPrediction>()
+    .FromFile(
+        modelName: ServiceRequestPredictor.ModelName,
+        filePath: modelPath,
+        watchForChanges: true);
+
+// Register the service used by the application to request category predictions.
+builder.Services.AddScoped<
+    IServiceRequestPredictor,
+    ServiceRequestPredictor>();
 
 var app = builder.Build();
 
