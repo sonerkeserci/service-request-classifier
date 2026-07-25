@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\RequestClassifier.Domain\RequestClassifier.Domain.csproj" />
+    <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
   </ItemGroup>
 
   <ItemGroup>
