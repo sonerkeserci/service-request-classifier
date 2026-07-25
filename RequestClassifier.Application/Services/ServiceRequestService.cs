@@ -3,23 +3,36 @@ using RequestClassifier.Application.DTOs.ServiceRequests;
 using RequestClassifier.Application.Interfaces;
 using RequestClassifier.Domain.Entities;
 using RequestClassifier.Domain.Enums;
+using RequestClassifier.ML.Services;
 
 namespace RequestClassifier.Application.Services;
 
 public class ServiceRequestService : IServiceRequestService
 {
     private readonly IApplicationDbContext _context;
-
-    public ServiceRequestService(IApplicationDbContext context)
+    private readonly IServiceRequestPredictor _predictor;
+    public ServiceRequestService(IApplicationDbContext context, IServiceRequestPredictor predictor)
     {
         _context = context;
+        _predictor = predictor;
     }
 
     public async Task<ServiceRequestDetailDto> CreateAsync(CreateServiceRequestDto dto)
     {
+        // Send the title and description to the trained model and receive the predicted category name and highest score.
+        var predictionResult = _predictor.PredictCategory(
+            dto.Title,
+            dto.Description);
+
+        // Find the active database category whose name matches the category name returned by the trained model.
+        var predictedCategory = await _context.RequestCategories
+            .FirstOrDefaultAsync(category =>
+                category.IsActive &&
+                category.Name == predictionResult.PredictedCategory);
+
         var serviceRequest = new ServiceRequest
         {
-            RequestNumber = $"TMP-{Guid.NewGuid().ToString("N")[..8]}", // Temporary request number until the entity is saved and gets an Id
+            RequestNumber = $"TMP-{Guid.NewGuid().ToString("N")[..8]}", // Temporary request number until the entity is saved and gets an real Id
             Title = dto.Title.Trim(),
             Description = dto.Description.Trim(),
             RequesterFirstName = dto.RequesterFirstName.Trim(),
@@ -27,6 +40,14 @@ public class ServiceRequestService : IServiceRequestService
             RequesterEmail = dto.RequesterEmail.Trim().ToLowerInvariant(),
             RequesterPhoneNumber = dto.RequesterPhoneNumber?.Trim(),
             Status = RequestStatus.Received,
+
+            // Store the database Id of the category predicted by the model.
+            // The value remains null if no matching active category is found.
+            PredictedCategoryId = predictedCategory?.Id,
+
+            // Store the highest score returned by the model.
+            PredictionScore = predictionResult.MaxScore,
+
             IsAutoAssigned = false
         };
 
@@ -45,6 +66,8 @@ public class ServiceRequestService : IServiceRequestService
                 Description = "The service request was received."
             });
 
+
+        // Save the permanent request number and initial status history.
         await _context.SaveChangesAsync();
 
         return MapToDetailDto(serviceRequest);
