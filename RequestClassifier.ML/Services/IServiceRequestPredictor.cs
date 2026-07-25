@@ -8,5 +8,5 @@ public interface IServiceRequestPredictor
     // Receives a service request title and description,
     // sends the combined text to the trained model,
     // and returns the predicted category and highest score.
-    ServiceRequestPredictionResult Predict(string? title, string description);
+    ServiceRequestPredictionResult PredictCategory(string? title, string description);
 }
