@@ -41,7 +41,12 @@ public class ServiceRequestsController : ControllerBase
     public async Task<IActionResult> Create(CreateServiceRequestDto dto)
     {
         var result = await _service.CreateAsync(dto);
-        return Ok(result);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+
+        // nameof(GetById): defines which endpoint can retrieve the newly created service request.
+        // new { id = result.Id }: provides the route parameter required by the GetById endpoint.
+        // result: becomes the response body containing the created service request.
+        // CreatedAtAction also returns HTTP 201 Created and generates a Location header such as /api/ServiceRequests/11.
     }
 
     // Calls TrackAsync using the request number and requester email.
@@ -69,6 +74,7 @@ public class ServiceRequestsController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin,Employee")]
     [HttpGet("{id:int}/histories")]
     public async Task<IActionResult> GetStatusHistory(int id)
     {
