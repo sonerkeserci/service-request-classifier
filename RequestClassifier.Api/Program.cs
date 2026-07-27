@@ -1,17 +1,19 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using RequestClassifier.Domain.Entities;
-using RequestClassifier.Infrastructure.Data;
+using Microsoft.Extensions.ML;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.ML;
+using Microsoft.ML.Data;
+using Microsoft.OpenApi;
 using RequestClassifier.Application.Interfaces;
 using RequestClassifier.Application.Services;
+using RequestClassifier.Domain.Entities;
+using RequestClassifier.Infrastructure.Data;
 using RequestClassifier.Infrastructure.Data.Seed;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.OpenApi;
-using Microsoft.Extensions.ML;
 using RequestClassifier.ML.Models;
 using RequestClassifier.ML.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,12 +119,51 @@ var modelPath = Path.Combine(
     "MLModels",
     "service-request-model.zip");
 
+// Stop application startup when the trained model file is missing.
 if (!File.Exists(modelPath))
 {
     throw new FileNotFoundException(
-        "The trained service request model could not be found.",
-        modelPath);
+        $"The ML model could not be found at: {modelPath}");
 }
+
+// Load the model once during application startup so its output schema
+// can be inspected and category names can be matched with Score indexes.
+var metadataMlContext = new MLContext();
+
+var metadataModel = metadataMlContext.Model.Load(
+    modelPath,
+    out var modelInputSchema);
+
+// Generate the output schema produced by the trained model.
+var modelOutputSchema = metadataModel.GetOutputSchema(modelInputSchema);
+
+// Find the Score column containing one score for every category.
+var scoreColumn = modelOutputSchema["Score"];
+
+// VBuffer is ML.NET's vector structure.
+// ReadOnlyMemory<char> represents each category name as read-only character data.
+VBuffer<ReadOnlyMemory<char>> scoreSlotNames = default;
+
+scoreColumn.GetSlotNames(ref scoreSlotNames);
+
+var modelCategoryNames = scoreSlotNames
+    .DenseValues()
+    .Select(categoryName => categoryName.ToString()) // Convert model category names into normal strings while preserving exactly the same order used by the Score vector.
+    .ToArray();
+
+// Ensure that category metadata exists before predictions are served.
+if (modelCategoryNames.Length == 0)
+{
+    throw new InvalidOperationException(
+        "No category names were found in the ML model Score metadata.");
+}
+
+// Register model metadata as a singleton because it never changes while the application is running.
+builder.Services.AddSingleton(
+    new ServiceRequestModelMetadata
+    {
+        CategoryNames = modelCategoryNames
+    });
 
 // Register a thread-safe prediction engine pool that loads the trained model.
 builder.Services
@@ -132,7 +173,7 @@ builder.Services
     .FromFile(
         modelName: ServiceRequestPredictor.ModelName,
         filePath: modelPath,
-        watchForChanges: true);
+        watchForChanges: false);
 
 // Register the service used by the application to request category predictions.
 builder.Services.AddScoped<
