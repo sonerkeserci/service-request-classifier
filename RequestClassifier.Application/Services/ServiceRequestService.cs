@@ -118,6 +118,7 @@ public class ServiceRequestService : IServiceRequestService
                     r.PredictedCategory != null
                         ? r.PredictedCategory.Name
                         : null,
+                PredictedCategoryId = r.PredictedCategoryId,      // Map the predicted category identifier to the list response.
                 AssignedCategoryName =
                     r.AssignedCategory != null
                         ? r.AssignedCategory.Name
@@ -194,6 +195,8 @@ public class ServiceRequestService : IServiceRequestService
             Status = request.Status,
             PredictedCategoryName =
                 request.PredictedCategory?.Name,
+            // Map the predicted category identifier to the response DTO.
+            PredictedCategoryId = request.PredictedCategoryId,
             AssignedCategoryName =
                 request.AssignedCategory?.Name,
             PredictionScore = request.PredictionScore,

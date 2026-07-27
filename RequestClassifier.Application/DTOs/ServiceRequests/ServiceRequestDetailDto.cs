@@ -19,6 +19,9 @@ public class ServiceRequestDetailDto
 
     public string? PredictedCategoryName { get; set; }
 
+    // Contains the database identifier of the category predicted by the ML model.
+    public int? PredictedCategoryId { get; set; }
+
     public string? AssignedCategoryName { get; set; }
 
     public float? PredictionScore { get; set; }
