@@ -15,4 +15,7 @@ public interface IServiceRequestService
     Task<bool> UpdateStatusAsync(int id, UpdateRequestStatusDto dto);   // Input: id, UpdateRequestStatusDto, Output: bool (true if successful, false if not)
 
     Task<List<RequestStatusHistoryDto>?> GetStatusHistoryAsync(int requestId);
+
+    // Returns the five category candidates with the highest model scores for the specified service request.
+    Task<List<CategoryPredictionCandidateDto>> GetPredictionCandidatesAsync(int id);
 }
