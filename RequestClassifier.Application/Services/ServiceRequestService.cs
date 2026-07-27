@@ -183,6 +183,76 @@ public class ServiceRequestService : IServiceRequestService
             .ToListAsync();
     }
 
+    public async Task<List<CategoryPredictionCandidateDto>> GetPredictionCandidatesAsync(int id)
+    {
+        // Find the request by its database ID.
+        var serviceRequest = await _context.ServiceRequests
+            .AsNoTracking() // Read-only query. EF Core does not track this entity.
+            .Where(request => request.Id == id) // Keep only the request with the given ID.
+            .Select(request => new ServiceRequest
+            {
+                // Load only the fields needed by the ML model.
+                Title = request.Title,
+                Description = request.Description
+            })
+            .FirstOrDefaultAsync(); // Return the first match, or null if no request exists.
+
+        // Stop and return an empty list when the request cannot be found.
+        if (serviceRequest == null)
+        {
+            return [];
+        }
+
+        // Send the saved title and description to the model again.
+        // The result contains the five categories with the highest scores.
+        var predictionResult = _predictor.PredictCategory(
+            serviceRequest.Title,
+            serviceRequest.Description);
+
+        // Take only the category names from the model candidates.
+        // Example: ["Kırsal Yol ve Altyapı", "Yol, Asfalt ve Kaldırım"]
+        var candidateNames = predictionResult.TopCandidates
+            .Select(candidate => candidate.CategoryName) // Convert each candidate into its name.
+            .ToList(); // Convert the result into a normal List<string>.
+
+        // Find the database category records matching the model's category names.
+        // This provides the real CategoryId values needed by the frontend.
+        var categories = await _context.RequestCategories
+            .AsNoTracking()
+            .Where(category =>
+                category.IsActive && // Ignore inactive categories.
+                candidateNames.Contains(category.Name)) // Keep names found in the Top 5 list.
+            .ToListAsync();
+
+        // Convert each ML candidate into the DTO returned by the API.
+        var candidateDtos = predictionResult.TopCandidates
+            .Select(candidate =>
+            {
+                // Find the database category with the same name as this ML candidate.
+                var category = categories.FirstOrDefault(
+                    item => item.Name == candidate.CategoryName);
+
+                // Combine the database ID with the model name and score.
+                return new CategoryPredictionCandidateDto
+                {
+                    // Use 0 when no matching database category is found.
+                    CategoryId = category?.Id ?? 0,
+
+                    // Take the category name from the ML result.
+                    CategoryName = candidate.CategoryName,
+
+                    // Take the score from the ML result.
+                    Score = candidate.Score
+                };
+            })
+            // Remove candidates that could not be matched with a database category.
+            .Where(candidate => candidate.CategoryId != 0)
+            .ToList();
+
+        // Return the final Top 5 candidate list to the controller.
+        return candidateDtos;
+    }
+
     // Private helper method to map ServiceRequest entity to ServiceRequestDetailDto to avoid code duplication
     private static ServiceRequestDetailDto MapToDetailDto(ServiceRequest request)
     {
