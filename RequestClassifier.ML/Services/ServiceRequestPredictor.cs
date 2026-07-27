@@ -14,10 +14,13 @@ public class ServiceRequestPredictor : IServiceRequestPredictor
     // ServiceRequestTrainingData specifies the model input type.
     // ServiceRequestPrediction specifies the model output type.
 
-    public ServiceRequestPredictor(PredictionEnginePool<ServiceRequestTrainingData, ServiceRequestPrediction> predictionEnginePool)
+    private readonly ServiceRequestModelMetadata _modelMetadata;
+
+    public ServiceRequestPredictor(PredictionEnginePool<ServiceRequestTrainingData, ServiceRequestPrediction> predictionEnginePool, ServiceRequestModelMetadata modelMetadata)
     {
         // Store the prediction engine pool provided by dependency injection in Program.cs.
         _predictionEnginePool = predictionEnginePool;
+        _modelMetadata = modelMetadata;
     }
 
     public ServiceRequestPredictionResult PredictCategory(string? title, string description)
@@ -37,16 +40,39 @@ public class ServiceRequestPredictor : IServiceRequestPredictor
         // Send the prepared text to the registered trained model and receive the raw ML.NET prediction output.
         var prediction = _predictionEnginePool.Predict(ModelName, new ServiceRequestTrainingData { Text = text });
 
-        // Find the highest score produced among all category scores.
-        var maxScore = prediction.Score.Length > 0
-            ? prediction.Score.Max()
-            : 0f;   // float zero
+        // Ensure that every model score has a matching category name.
+        // A mismatch could cause scores to be displayed under incorrect categories.
+        if (prediction.Score.Length != _modelMetadata.CategoryNames.Count)
+        {
+            throw new InvalidOperationException(
+                $"The model returned {prediction.Score.Length} scores, " +
+                $"but {_modelMetadata.CategoryNames.Count} category names were found.");
+        }
 
-        // Convert the raw ML.NET prediction into a simplified application result.
+        // Match every score with the category name stored at the same index,
+        // sort the candidates from highest score to lowest score,
+        // and keep only the five strongest category suggestions.
+        var topCandidates = prediction.Score
+            .Select(
+                (score, index) => new CategoryPredictionCandidate
+                {
+                    CategoryName = _modelMetadata.CategoryNames[index],
+                    Score = score
+                })
+            .OrderByDescending(candidate => candidate.Score)
+            .Take(5)
+            .ToList();
+
+        // Use the first sorted candidate as the maximum model score.
+        var maxScore = topCandidates.Count > 0
+            ? topCandidates[0].Score
+            : 0f;
+
         return new ServiceRequestPredictionResult
         {
             PredictedCategory = prediction.PredictedCategory,
-            MaxScore = maxScore
+            MaxScore = maxScore,
+            TopCandidates = topCandidates
         };
     }
 }
