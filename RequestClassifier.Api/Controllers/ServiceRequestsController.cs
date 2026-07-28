@@ -83,4 +83,20 @@ public class ServiceRequestsController : ControllerBase
         if (history == null) return NotFound();
         return Ok(history);
     }
+
+    // Returns the five strongest category suggestions for the specified request.
+    [Authorize(Roles = "Admin,Employee")]
+    [HttpGet("{id:int}/prediction-candidates")]
+    public async Task<IActionResult> GetPredictionCandidates(int id)
+    {
+        //Ask the application service for the model's category suggestion.
+        var candidates = await _service.GetPredictionCandidatesAsync(id);
+
+        // Return 404 when the request does not exist or no candidate could be produced.
+        if (candidates.Count == 0)
+            return NotFound();
+
+        // Return the candidate list with HTTP 200.
+        return Ok(candidates);
+    }
 }

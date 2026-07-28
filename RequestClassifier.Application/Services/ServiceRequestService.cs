@@ -253,6 +253,52 @@ public class ServiceRequestService : IServiceRequestService
         return candidateDtos;
     }
 
+    public async Task<bool> AssignCategoryAsync(int id, AssignCategoryDto dto)
+    {
+        // Load the service request that will be updated.
+        var serviceRequest = await _context.ServiceRequests.
+            FirstOrDefaultAsync(sr => sr.Id == id);
+
+        if (serviceRequest is null)
+            return false;
+
+        // Load the selected active category.
+        var category = await _context.RequestCategories.
+            FirstOrDefaultAsync(rc => rc.Id == dto.CategoryId && rc.IsActive);
+
+        if (category is null)
+            return false;
+
+        // Assign the employee-selected category to the service request.
+        serviceRequest.AssignedCategoryId = category.Id;
+
+        // Mark the assignment as manual because an employee selected it.
+        serviceRequest.IsAutoAssigned = false;
+
+        // Update the request status after category assignment.
+        serviceRequest.Status = RequestStatus.Assigned;
+
+        // Update the modification date.
+        serviceRequest.UpdatedAt = DateTime.UtcNow;
+
+        //Add the category assignment to the request history.
+        _context.RequestStatusHistories.
+            Add(new RequestStatusHistory
+            {
+                ServiceRequestId = serviceRequest.Id,
+                NewStatus = RequestStatus.Assigned,
+                Description =
+                $"Category manually assigned as '{category.Name}'.",
+                ChangedAt = DateTime.UtcNow
+
+            });
+
+        // Save all changes in one database operation.
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
     // Private helper method to map ServiceRequest entity to ServiceRequestDetailDto to avoid code duplication
     private static ServiceRequestDetailDto MapToDetailDto(ServiceRequest request)
     {
