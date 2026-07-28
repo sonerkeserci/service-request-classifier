@@ -37,6 +37,11 @@ public class ServiceRequestService : IServiceRequestService
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
 
+        var shouldAutoAssign =
+            predictedCategory != null &&
+            (predictionResult.MaxScore > AutoAssignmentScoreThreshold) &&
+            (predictionResult.ScoreMargin > AutoAssignmentMarginThreshold);
+
         var serviceRequest = new ServiceRequest
         {
             RequestNumber = $"TMP-{Guid.NewGuid().ToString("N")[..8]}", // Temporary request number until the entity is saved and gets an real Id
