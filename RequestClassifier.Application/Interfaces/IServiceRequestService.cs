@@ -18,4 +18,7 @@ public interface IServiceRequestService
 
     // Returns the five category candidates with the highest model scores for the specified service request.
     Task<List<CategoryPredictionCandidateDto>> GetPredictionCandidatesAsync(int id);
+
+    // Assigns the category selected by an employee to the service request.
+    Task<bool> AssignCategoryAsync(int id, AssignCategoryDto dto);
 }
