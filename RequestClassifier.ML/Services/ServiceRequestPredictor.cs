@@ -68,10 +68,17 @@ public class ServiceRequestPredictor : IServiceRequestPredictor
             ? topCandidates[0].Score
             : 0f;
 
+        var secondScore = topCandidates.Count > 1
+            ? topCandidates[1].Score
+            : 0f;
+
+        var scoreMargin = maxScore- secondScore;
+
         return new ServiceRequestPredictionResult
         {
             PredictedCategory = prediction.PredictedCategory,
             MaxScore = maxScore,
+            ScoreMargin = scoreMargin,
             TopCandidates = topCandidates
         };
     }

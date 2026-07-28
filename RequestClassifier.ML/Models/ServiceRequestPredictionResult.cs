@@ -9,6 +9,9 @@ public class ServiceRequestPredictionResult
     // Contains the highest score produced among all categories.
     public float MaxScore { get; set; }
 
+    // Contains the difference between the highest and second-highest scores.
+    public float ScoreMargin { get; set; }
+
     // Contains the categories with the highest model scores.
     public List<CategoryPredictionCandidate> TopCandidates { get; set; } = [];
 }
