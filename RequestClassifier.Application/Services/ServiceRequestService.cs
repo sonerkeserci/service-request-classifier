@@ -269,6 +269,10 @@ public class ServiceRequestService : IServiceRequestService
         if (category is null)
             return false;
 
+
+        // Store the current status before changing it.
+        var oldStatus = serviceRequest.Status;
+
         // Assign the employee-selected category to the service request.
         serviceRequest.AssignedCategoryId = category.Id;
 
@@ -281,11 +285,12 @@ public class ServiceRequestService : IServiceRequestService
         // Update the modification date.
         serviceRequest.UpdatedAt = DateTime.UtcNow;
 
-        //Add the category assignment to the request history.
+        // Record the assignment and status change in the history table.
         _context.RequestStatusHistories.
             Add(new RequestStatusHistory
             {
                 ServiceRequestId = serviceRequest.Id,
+                OldStatus = oldStatus,
                 NewStatus = RequestStatus.Assigned,
                 Description =
                 $"Category manually assigned as '{category.Name}'.",
