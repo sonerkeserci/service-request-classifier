@@ -11,6 +11,13 @@ public class ServiceRequestService : IServiceRequestService
 {
     private readonly IApplicationDbContext _context;
     private readonly IServiceRequestPredictor _predictor;
+
+    // Defines the minimum highest score required for automatic assignment.
+    private const float AutoAssignmentScoreThreshold = 0.60f;
+
+    // Defines the minimum difference required between the first and second scores.
+    private const float AutoAssignmentMarginThreshold = 0.20f;
+
     public ServiceRequestService(IApplicationDbContext context, IServiceRequestPredictor predictor)
     {
         _context = context;
