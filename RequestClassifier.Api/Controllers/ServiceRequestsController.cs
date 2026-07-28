@@ -99,4 +99,21 @@ public class ServiceRequestsController : ControllerBase
         // Return the candidate list with HTTP 200.
         return Ok(candidates);
     }
+
+    [Authorize(Roles = "Admin,Employee")]
+    [HttpPut("{id:int}/assign")]
+    public async Task<IActionResult> AssignCategory(int id, AssignCategoryDto dto)
+    {
+        // Send the request ID and selected category to the application service.
+        var isAssigned = await _service.AssignCategoryAsync(id, dto);
+
+        // Return HTTP 400 when the request or selected category is invalid.
+        if (!isAssigned)
+        {
+            return BadRequest("The service request or selected category is invalid.");
+        }
+
+        // Return HTTP 204 because the assignment succeeded and no response body is required.
+        return NoContent();
+    }
 }
