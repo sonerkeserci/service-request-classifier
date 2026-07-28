@@ -39,8 +39,8 @@ public class ServiceRequestService : IServiceRequestService
 
         var shouldAutoAssign =
             predictedCategory != null &&
-            (predictionResult.MaxScore > AutoAssignmentScoreThreshold) &&
-            (predictionResult.ScoreMargin > AutoAssignmentMarginThreshold);
+            (predictionResult.MaxScore >= AutoAssignmentScoreThreshold) &&
+            (predictionResult.ScoreMargin >= AutoAssignmentMarginThreshold);
 
         var serviceRequest = new ServiceRequest
         {
@@ -51,16 +51,26 @@ public class ServiceRequestService : IServiceRequestService
             RequesterLastName = dto.RequesterLastName.Trim(),
             RequesterEmail = dto.RequesterEmail.Trim().ToLowerInvariant(),
             RequesterPhoneNumber = dto.RequesterPhoneNumber?.Trim(),
-            Status = RequestStatus.Received,
 
             // Store the database Id of the category predicted by the model.
             // The value remains null if no matching active category is found.
             PredictedCategoryId = predictedCategory?.Id,
-
             // Store the highest score returned by the model.
             PredictionScore = predictionResult.MaxScore,
 
-            IsAutoAssigned = false
+            // Automatically assign the predicted category when both thresholds are met.
+            AssignedCategoryId = shouldAutoAssign
+            ? predictedCategory!.Id
+            : null,
+
+            // Mark whether the category was assigned automatically.
+            IsAutoAssigned = shouldAutoAssign,
+
+            // Move automatically assigned requests directly to Assigned.
+            // Other requests remain Classified and wait for employee review.
+            Status = shouldAutoAssign
+            ? RequestStatus.Assigned
+            : RequestStatus.Classified
         };
 
         _context.ServiceRequests.Add(serviceRequest);
