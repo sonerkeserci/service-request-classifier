@@ -52,44 +52,82 @@ public class ServiceRequestService : IServiceRequestService
             RequesterEmail = dto.RequesterEmail.Trim().ToLowerInvariant(),
             RequesterPhoneNumber = dto.RequesterPhoneNumber?.Trim(),
 
-            // Store the database Id of the category predicted by the model.
-            // The value remains null if no matching active category is found.
+            // Every new request first enters the Received status.
+            Status = RequestStatus.Received,
+
+            // Store the category predicted by the ML model.
             PredictedCategoryId = predictedCategory?.Id,
-            // Store the highest score returned by the model.
+
+            // Store the highest score produced by the model.
             PredictionScore = predictionResult.MaxScore,
 
-            // Automatically assign the predicted category when both thresholds are met.
-            AssignedCategoryId = shouldAutoAssign
-            ? predictedCategory!.Id
-            : null,
-
-            // Mark whether the category was assigned automatically.
-            IsAutoAssigned = shouldAutoAssign,
-
-            // Move automatically assigned requests directly to Assigned.
-            // Other requests remain Classified and wait for employee review.
-            Status = shouldAutoAssign
-            ? RequestStatus.Assigned
-            : RequestStatus.Classified
+            // Assignment is applied after the first database save.
+            AssignedCategoryId = null,
+            IsAutoAssigned = false
         };
 
         _context.ServiceRequests.Add(serviceRequest);
 
-        await _context.SaveChangesAsync(); // Save to generate the Id for the service request
+        // Save the request first so the database generates its ID.
+        await _context.SaveChangesAsync();
 
         serviceRequest.RequestNumber = $"REQ-{DateTime.UtcNow.Year}-{serviceRequest.Id:D6}"; // Update the request number with the generated Id
 
-        // Add initial status history entry
+        // Record that the request was first received by the system.
         serviceRequest.StatusHistories.Add(
             new RequestStatusHistory
             {
                 OldStatus = null,
                 NewStatus = RequestStatus.Received,
-                Description = "The service request was received."
+                Description = "The service request was received.",
+                ChangedAt = DateTime.UtcNow
             });
 
+        // Apply automatic assignment when both thresholds are met.
+        if (shouldAutoAssign)
+        {
+            // Assign the predicted category automatically.
+            serviceRequest.AssignedCategoryId = predictedCategory!.Id;
 
-        // Save the permanent request number and initial status history.
+            // Mark that the assignment was made by the system.
+            serviceRequest.IsAutoAssigned = true;
+
+            // Move the request directly to the Assigned status in DB.
+            serviceRequest.Status = RequestStatus.Assigned;
+
+            // Record the automatic assignment.
+            serviceRequest.StatusHistories.Add(
+                new RequestStatusHistory
+                {
+                    OldStatus = RequestStatus.Received,
+                    NewStatus = RequestStatus.Assigned,
+                    Description = $"The request was automatically assigned to '{predictedCategory?.Name}'.",
+                    ChangedAt = DateTime.UtcNow
+                });
+        }
+        else
+        {
+            // Leave the request for employee review.
+            serviceRequest.AssignedCategoryId = null;
+            serviceRequest.IsAutoAssigned = false;
+            serviceRequest.Status = RequestStatus.Classified;
+
+            // Record that the prediction requires employee review.
+            serviceRequest.StatusHistories.Add(
+                new RequestStatusHistory
+                {
+                    OldStatus = RequestStatus.Received,
+                    NewStatus = RequestStatus.Classified,
+                    Description =
+                        $"The request was classified as '{predictedCategory?.Name ?? "Unknown"}' and left for employee review.",
+                    ChangedAt = DateTime.UtcNow
+                });
+        }
+
+        serviceRequest.UpdatedAt = DateTime.UtcNow;
+
+        // Save the permanent request number, final status,
+        // assignment result and both history records.
         await _context.SaveChangesAsync();
 
         return MapToDetailDto(serviceRequest);
