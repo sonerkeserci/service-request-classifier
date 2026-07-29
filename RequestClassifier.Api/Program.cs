@@ -184,23 +184,7 @@ builder.Services.AddScoped<
 builder.Services.Configure<MachineLearningSettings>(
     builder.Configuration.GetSection("MachineLearning"));
 
-
-
 var app = builder.Build();
-
-// Create the initial application roles and administrator account.
-using (var scope = app.Services.CreateScope())
-{
-    var userManager = scope.ServiceProvider
-        .GetRequiredService<UserManager<ApplicationUser>>();
-
-    var roleManager = scope.ServiceProvider
-        .GetRequiredService<RoleManager<IdentityRole>>();
-
-    await IdentitySeeder.SeedAsync(
-        userManager,
-        roleManager);
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -209,22 +193,27 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// Seed departments, categories, roles, and the initial administrator account.
+using (var scope = app.Services.CreateScope())
+{
+    var serviceProvider = scope.ServiceProvider;
+
+    var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
+
+    var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    await DatabaseSeeder.SeedAsync(context);
+
+    await IdentitySeeder.SeedAsync(userManager, roleManager);
+}
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();    // Authenticate the user from the JWT token before authorization is checked.
 app.UseAuthorization();     // Check whether the authenticated user has permission to access the endpoint.
 
 app.MapControllers();
-
-// Used for one-time database seeding. Comment out after the initial run.
-/*
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider
-        .GetRequiredService<ApplicationDbContext>();
-
-    await DatabaseSeeder.SeedAsync(context);
-}
-*/
 
 app.Run();
