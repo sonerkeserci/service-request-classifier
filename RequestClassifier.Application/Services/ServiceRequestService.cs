@@ -59,6 +59,9 @@ public class ServiceRequestService : IServiceRequestService
             // Store the highest score produced by the model.
             PredictionScore = predictionResult.MaxScore,
 
+            // Store the difference between the first and second model scores.
+            PredictionScoreMargin = predictionResult.ScoreMargin,
+
             // Assignment is applied after the first database save.
             AssignedCategoryId = null,
             IsAutoAssigned = false
@@ -182,6 +185,7 @@ public class ServiceRequestService : IServiceRequestService
                         ? r.AssignedCategory.Name
                         : null,
                 PredictionScore = r.PredictionScore,
+                PredictionScoreMargin = r.PredictionScoreMargin,
                 IsAutoAssigned = r.IsAutoAssigned,
                 CreatedAt = r.CreatedAt
             })
@@ -379,6 +383,7 @@ public class ServiceRequestService : IServiceRequestService
             AssignedCategoryName =
                 request.AssignedCategory?.Name,
             PredictionScore = request.PredictionScore,
+            PredictionScoreMargin = request.PredictionScoreMargin,
             IsAutoAssigned = request.IsAutoAssigned,
             CreatedAt = request.CreatedAt
         };

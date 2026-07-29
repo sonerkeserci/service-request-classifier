@@ -24,7 +24,9 @@ public class ServiceRequestDetailDto
 
     public string? AssignedCategoryName { get; set; }
 
-    public float? PredictionScore { get; set; }
+    public float PredictionScore { get; set; }
+
+    public float PredictionScoreMargin { get; set; }
 
     public bool IsAutoAssigned { get; set; }
 

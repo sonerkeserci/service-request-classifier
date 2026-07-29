@@ -18,7 +18,8 @@ namespace RequestClassifier.Domain.Entities
 
 
 
-        public float? PredictionScore { get; set; }     // Confidence score of the predicted category
+        public float PredictionScore { get; set; }         // Confidence score of the predicted category                                                        
+        public float PredictionScoreMargin { get; set; }   // Stores the difference between the highest and second-highest model scores.
 
 
         public int? PredictedCategoryId { get; set; }   // Foreign key to the RequestCategory entity for the predicted category
