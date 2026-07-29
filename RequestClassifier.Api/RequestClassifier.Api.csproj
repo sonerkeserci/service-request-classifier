@@ -1,35 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Remove="MLModels\service-request-model.zip" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Remove="MLModels\service-request-model.zip" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="MLModels\service-request-model.zip">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="MLModels\service-request-model.zip">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.ML" Version="5.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.10" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
-    <ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
-    <ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
-  </ItemGroup>
+		<PackageReference Include="Microsoft.IdentityModel.Protocols" Version="8.20.0" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.20.0" />
+		
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.ML" Version="5.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
+		<ProjectReference Include="..\RequestClassifier.Infrastructure\RequestClassifier.Infrastructure.csproj" />
+		<ProjectReference Include="..\RequestClassifier.ML\RequestClassifier.ML.csproj" />
+	</ItemGroup>
 
 </Project>
