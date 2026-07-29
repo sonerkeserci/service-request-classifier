@@ -14,6 +14,7 @@ using RequestClassifier.Infrastructure.Data.Seed;
 using RequestClassifier.ML.Models;
 using RequestClassifier.ML.Services;
 using System.Text;
+using RequestClassifier.Application.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -177,6 +178,13 @@ builder.Services
 builder.Services.AddScoped<
     IServiceRequestPredictor,
     ServiceRequestPredictor>();
+
+// Bind the MachineLearning section from appsettings.json
+// to the MachineLearningSettings class.
+builder.Services.Configure<MachineLearningSettings>(
+    builder.Configuration.GetSection("MachineLearning"));
+
+
 
 var app = builder.Build();
 
