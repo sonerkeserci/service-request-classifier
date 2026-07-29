@@ -4,6 +4,8 @@ using RequestClassifier.Application.Interfaces;
 using RequestClassifier.Domain.Entities;
 using RequestClassifier.Domain.Enums;
 using RequestClassifier.ML.Services;
+using Microsoft.Extensions.Options;
+using RequestClassifier.Application.Settings;
 
 namespace RequestClassifier.Application.Services;
 
@@ -11,17 +13,13 @@ public class ServiceRequestService : IServiceRequestService
 {
     private readonly IApplicationDbContext _context;
     private readonly IServiceRequestPredictor _predictor;
+    private readonly MachineLearningSettings _machineLearningSettings;
 
-    // Defines the minimum highest score required for automatic assignment.
-    private const float AutoAssignmentScoreThreshold = 0.60f;
-
-    // Defines the minimum difference required between the first and second scores.
-    private const float AutoAssignmentMarginThreshold = 0.20f;
-
-    public ServiceRequestService(IApplicationDbContext context, IServiceRequestPredictor predictor)
+    public ServiceRequestService(IApplicationDbContext context, IServiceRequestPredictor predictor, IOptions<MachineLearningSettings> machineLearningOptions)
     {
         _context = context;
         _predictor = predictor;
+        _machineLearningSettings = machineLearningOptions.Value;
     }
 
     public async Task<ServiceRequestDetailDto> CreateAsync(CreateServiceRequestDto dto)
@@ -39,8 +37,8 @@ public class ServiceRequestService : IServiceRequestService
 
         var shouldAutoAssign =
             predictedCategory != null &&
-            (predictionResult.MaxScore >= AutoAssignmentScoreThreshold) &&
-            (predictionResult.ScoreMargin >= AutoAssignmentMarginThreshold);
+            (predictionResult.MaxScore >= _machineLearningSettings.AutoAssignmentScoreThreshold) &&
+            (predictionResult.ScoreMargin >= _machineLearningSettings.AutoAssignmentMarginThreshold);
 
         var serviceRequest = new ServiceRequest
         {
