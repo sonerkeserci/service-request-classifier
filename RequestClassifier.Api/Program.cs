@@ -193,7 +193,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// Seed departments, categories, roles, and the initial administrator account.
+/* SEED SCOPE */
+
 using (var scope = app.Services.CreateScope())
 {
     var serviceProvider = scope.ServiceProvider;
@@ -208,6 +209,8 @@ using (var scope = app.Services.CreateScope())
 
     await IdentitySeeder.SeedAsync(userManager, roleManager);
 }
+
+/**/
 
 app.UseHttpsRedirection();
 
