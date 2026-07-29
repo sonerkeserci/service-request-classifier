@@ -31,6 +31,7 @@ public class ServiceRequestService : IServiceRequestService
 
         // Find the active database category whose name matches the category name returned by the trained model.
         var predictedCategory = await _context.RequestCategories
+            .Include(category=>category.Department)
             .FirstOrDefaultAsync(category =>
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
@@ -89,6 +90,7 @@ public class ServiceRequestService : IServiceRequestService
         {
             // Assign the predicted category automatically.
             serviceRequest.AssignedCategoryId = predictedCategory!.Id;
+            serviceRequest.AssignedCategory = predictedCategory;
 
             // Mark that the assignment was made by the system.
             serviceRequest.IsAutoAssigned = true;
@@ -102,7 +104,7 @@ public class ServiceRequestService : IServiceRequestService
                 {
                     OldStatus = RequestStatus.Received,
                     NewStatus = RequestStatus.Assigned,
-                    Description = $"The request was automatically assigned to '{predictedCategory?.Name}'.",
+                    Description = $"The request was automatically assigned to '{predictedCategory.Department.Name}/{predictedCategory?.Name}'.",
                     ChangedAt = DateTime.UtcNow
                 });
         }
@@ -139,7 +141,9 @@ public class ServiceRequestService : IServiceRequestService
         var request = await _context.ServiceRequests
             .AsNoTracking()
             .Include(r => r.PredictedCategory)
+                .ThenInclude(category => category.Department)
             .Include(r => r.AssignedCategory)
+                .ThenInclude(category => category.Department)
             .FirstOrDefaultAsync(r => r.RequestNumber == dto.RequestNumber && r.RequesterEmail == dto.RequesterEmail.Trim().ToLowerInvariant());
         // FirstOrDefaultAsync will return the first matching request or null if no match is found
 
@@ -153,7 +157,9 @@ public class ServiceRequestService : IServiceRequestService
         var request = await _context.ServiceRequests
             .AsNoTracking()
             .Include(r => r.PredictedCategory)
+                .ThenInclude(category => category.Department)
             .Include(r => r.AssignedCategory)
+                .ThenInclude(category => category.Department)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         return request is null
@@ -166,7 +172,9 @@ public class ServiceRequestService : IServiceRequestService
         return await _context.ServiceRequests
             .AsNoTracking()
             .Include(r => r.PredictedCategory)
-            .Include(r => r.AssignedCategory)
+                .ThenInclude(category => category.Department)
+            .Include(request => request.AssignedCategory)
+                .ThenInclude(category => category.Department)
             .OrderByDescending(r => r.CreatedAt)
             .Select(r => new ServiceRequestDetailDto // Projecting to DTO to avoid loading unnecessary data
             {
@@ -187,7 +195,23 @@ public class ServiceRequestService : IServiceRequestService
                 PredictionScore = r.PredictionScore,
                 PredictionScoreMargin = r.PredictionScoreMargin,
                 IsAutoAssigned = r.IsAutoAssigned,
-                CreatedAt = r.CreatedAt
+                CreatedAt = r.CreatedAt,
+
+                PredictedDepartmentId = r.PredictedCategory != null
+                ? r.PredictedCategory.DepartmentId
+                : null,
+
+                PredictedDepartmentName = r.PredictedCategory != null
+                ? r.PredictedCategory.Department.Name
+                : null,
+
+                AssignedDepartmentId = r.AssignedCategory != null
+                ? r.AssignedCategory.DepartmentId
+                : null,
+
+                AssignedDepartmentName = r.AssignedCategory != null
+                ? r.AssignedCategory.Department.Name
+                : null,
             })
             .ToListAsync(); // Execute the query and return the list of DTOs
     }
@@ -385,7 +409,11 @@ public class ServiceRequestService : IServiceRequestService
             PredictionScore = request.PredictionScore,
             PredictionScoreMargin = request.PredictionScoreMargin,
             IsAutoAssigned = request.IsAutoAssigned,
-            CreatedAt = request.CreatedAt
+            CreatedAt = request.CreatedAt,
+            PredictedDepartmentId = request.PredictedCategory?.DepartmentId,
+            PredictedDepartmentName = request.PredictedCategory?.Department?.Name,
+            AssignedDepartmentId = request.AssignedCategory?.DepartmentId,
+            AssignedDepartmentName = request.AssignedCategory?.Department?.Name,
         };
     }
 }

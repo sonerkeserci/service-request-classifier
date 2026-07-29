@@ -31,4 +31,12 @@ public class ServiceRequestDetailDto
     public bool IsAutoAssigned { get; set; }
 
     public DateTime CreatedAt { get; set; }
+
+    public int? PredictedDepartmentId { get; set; }
+
+    public string? PredictedDepartmentName { get; set; }
+
+    public int? AssignedDepartmentId { get; set; }
+
+    public string? AssignedDepartmentName { get; set; }
 }
