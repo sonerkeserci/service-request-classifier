@@ -4,9 +4,9 @@ namespace RequestClassifier.Application.Interfaces;
 
 public interface IServiceRequestService
 {
-    Task<ServiceRequestDetailDto> CreateAsync(CreateServiceRequestDto dto); // Input: CreateServiceRequestDto, Output: ServiceRequestDetailDto
+    Task<CreateServiceRequestResultDto> CreateAsync(CreateServiceRequestDto dto); // Input: CreateServiceRequestDto, Output: ServiceRequestDetailDto
 
-    Task<ServiceRequestDetailDto?> TrackAsync(TrackServiceRequestDto dto);
+    Task<TrackServiceRequestResultDto?> TrackAsync(TrackServiceRequestDto dto);
 
     Task<ServiceRequestDetailDto?> GetByIdAsync(int id);    // Input: id, Output: ServiceRequestDetailDto
 

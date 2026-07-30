@@ -27,7 +27,7 @@ public class ServiceRequestService : IServiceRequestService
         _machineLearningSettings = machineLearningOptions.Value;
         _httpContextAccessor = httpContextAccessor;
     }
-    public async Task<ServiceRequestDetailDto> CreateAsync(CreateServiceRequestDto dto)
+    public async Task<CreateServiceRequestResultDto> CreateAsync(CreateServiceRequestDto dto)
     {
         // Send the title and description to the trained model and receive the predicted category name and highest score.
         var predictionResult = _predictor.PredictCategory(
@@ -36,7 +36,7 @@ public class ServiceRequestService : IServiceRequestService
 
         // Find the active database category whose name matches the category name returned by the trained model.
         var predictedCategory = await _context.RequestCategories
-            .Include(category => category.Department)
+            .Include(category => category!.Department)
             .FirstOrDefaultAsync(category =>
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
@@ -109,7 +109,9 @@ public class ServiceRequestService : IServiceRequestService
                 {
                     OldStatus = RequestStatus.Received,
                     NewStatus = RequestStatus.Assigned,
-                    Description = $"The request was automatically assigned to '{predictedCategory.Department.Name}/{predictedCategory?.Name}'.",
+                    Description =
+                        $"The request was automatically assigned to " +
+                        $"'{predictedCategory!.Department.Name}/{predictedCategory.Name}'.",
                     ChangedAt = DateTime.UtcNow
                 });
         }
@@ -138,23 +140,37 @@ public class ServiceRequestService : IServiceRequestService
         // assignment result and both history records.
         await _context.SaveChangesAsync();
 
-        return MapToDetailDto(serviceRequest);
+        return new CreateServiceRequestResultDto
+        {
+            RequestNumber = serviceRequest.RequestNumber,
+            Status = serviceRequest.Status,
+            AssignedDepartmentName = serviceRequest.AssignedCategory!.Department.Name,
+            CreatedAt = serviceRequest.CreatedAt
+        };
     }
 
-    public async Task<ServiceRequestDetailDto?> TrackAsync(TrackServiceRequestDto dto)
+    public async Task<TrackServiceRequestResultDto?> TrackAsync(TrackServiceRequestDto dto)
     {
         var request = await _context.ServiceRequests
             .AsNoTracking()
             .Include(r => r.PredictedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .Include(r => r.AssignedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .FirstOrDefaultAsync(r => r.RequestNumber == dto.RequestNumber && r.RequesterEmail == dto.RequesterEmail.Trim().ToLowerInvariant());
         // FirstOrDefaultAsync will return the first matching request or null if no match is found
 
         return request is null
             ? null
-            : MapToDetailDto(request);
+            : new TrackServiceRequestResultDto
+            {
+                RequestNumber = request.RequestNumber,
+                Title = request.Title,
+                Description = request.Description,
+                Status = request.Status,
+                AssignedDepartmentName = request.AssignedCategory!.Department.Name,
+                CreatedAt = request.CreatedAt,
+            };
     }
 
     public async Task<ServiceRequestDetailDto?> GetByIdAsync(int id)
@@ -174,9 +190,9 @@ public class ServiceRequestService : IServiceRequestService
         var query = _context.ServiceRequests
             .AsNoTracking()
             .Include(request => request.PredictedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .Include(request => request.AssignedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .AsQueryable();
 
         if (isEmployee)
@@ -216,9 +232,9 @@ public class ServiceRequestService : IServiceRequestService
         var query = _context.ServiceRequests
             .AsNoTracking()
             .Include(request => request.PredictedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .Include(request => request.AssignedCategory)
-                .ThenInclude(category => category.Department)
+                .ThenInclude(category => category!.Department)
             .AsQueryable();
 
         if (isEmployee)
@@ -544,6 +560,10 @@ public class ServiceRequestService : IServiceRequestService
             PredictedDepartmentName = request.PredictedCategory?.Department?.Name,
             AssignedDepartmentId = request.AssignedCategory?.DepartmentId,
             AssignedDepartmentName = request.AssignedCategory?.Department?.Name,
+            RequesterFirstName = request.RequesterFirstName,
+            RequesterLastName = request.RequesterLastName,
+            RequesterEmail = request.RequesterEmail,
+            RequesterPhoneNumber= request.RequesterPhoneNumber,
         };
     }
 }
