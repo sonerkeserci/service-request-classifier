@@ -271,6 +271,14 @@ public class AuthService : IAuthService
                 Guid.NewGuid().ToString())
         };
 
+        if (user.DepartmentId.HasValue)
+        {
+            claims.Add(
+                new Claim(
+                    "departmentId",
+                    user.DepartmentId.Value.ToString()));
+        }
+
         var securityKey =
             new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(key));

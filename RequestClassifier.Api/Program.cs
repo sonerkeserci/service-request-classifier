@@ -85,7 +85,7 @@ builder.Services
         };
     });
 
-
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers();
 

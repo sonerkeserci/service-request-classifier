@@ -1,11 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using RequestClassifier.Application.DTOs.ServiceRequests;
 using RequestClassifier.Application.Interfaces;
+using RequestClassifier.Application.Settings;
 using RequestClassifier.Domain.Entities;
 using RequestClassifier.Domain.Enums;
 using RequestClassifier.ML.Services;
-using Microsoft.Extensions.Options;
-using RequestClassifier.Application.Settings;
 
 namespace RequestClassifier.Application.Services;
 
@@ -14,14 +15,18 @@ public class ServiceRequestService : IServiceRequestService
     private readonly IApplicationDbContext _context;
     private readonly IServiceRequestPredictor _predictor;
     private readonly MachineLearningSettings _machineLearningSettings;
-
-    public ServiceRequestService(IApplicationDbContext context, IServiceRequestPredictor predictor, IOptions<MachineLearningSettings> machineLearningOptions)
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    public ServiceRequestService(
+        IApplicationDbContext context,
+        IServiceRequestPredictor predictor,
+        IOptions<MachineLearningSettings> machineLearningOptions,
+        IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
         _predictor = predictor;
         _machineLearningSettings = machineLearningOptions.Value;
+        _httpContextAccessor = httpContextAccessor;
     }
-
     public async Task<ServiceRequestDetailDto> CreateAsync(CreateServiceRequestDto dto)
     {
         // Send the title and description to the trained model and receive the predicted category name and highest score.
@@ -31,7 +36,7 @@ public class ServiceRequestService : IServiceRequestService
 
         // Find the active database category whose name matches the category name returned by the trained model.
         var predictedCategory = await _context.RequestCategories
-            .Include(category=>category.Department)
+            .Include(category => category.Department)
             .FirstOrDefaultAsync(category =>
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
@@ -154,13 +159,40 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<ServiceRequestDetailDto?> GetByIdAsync(int id)
     {
-        var request = await _context.ServiceRequests
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        var isEmployee = user?.IsInRole("Employee") == true;
+
+        var departmentIdClaim = user?.FindFirst("departmentId")?.Value;
+
+        int? employeeDepartmentId = int.TryParse(
+            departmentIdClaim,
+            out var parsedDepartmentId)
+                ? parsedDepartmentId
+                : null;
+
+        var query = _context.ServiceRequests
             .AsNoTracking()
-            .Include(r => r.PredictedCategory)
+            .Include(request => request.PredictedCategory)
                 .ThenInclude(category => category.Department)
-            .Include(r => r.AssignedCategory)
+            .Include(request => request.AssignedCategory)
                 .ThenInclude(category => category.Department)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .AsQueryable();
+
+        if (isEmployee)
+        {
+            if (!employeeDepartmentId.HasValue)
+            {
+                return null;
+            }
+
+            query = query.Where(request =>
+                request.AssignedCategory != null &&
+                request.AssignedCategory.DepartmentId == employeeDepartmentId.Value);
+        }
+
+        var request = await query
+            .FirstOrDefaultAsync(request => request.Id == id);
 
         return request is null
             ? null
@@ -169,60 +201,127 @@ public class ServiceRequestService : IServiceRequestService
 
     public async Task<List<ServiceRequestDetailDto>> GetAllAsync()
     {
-        return await _context.ServiceRequests
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        var isEmployee = user?.IsInRole("Employee") == true;
+
+        var departmentIdClaim = user?.FindFirst("departmentId")?.Value;
+
+        int? employeeDepartmentId = int.TryParse(
+            departmentIdClaim,
+            out var parsedDepartmentId)
+                ? parsedDepartmentId
+                : null;
+
+        var query = _context.ServiceRequests
             .AsNoTracking()
-            .Include(r => r.PredictedCategory)
+            .Include(request => request.PredictedCategory)
                 .ThenInclude(category => category.Department)
             .Include(request => request.AssignedCategory)
                 .ThenInclude(category => category.Department)
-            .OrderByDescending(r => r.CreatedAt)
-            .Select(r => new ServiceRequestDetailDto // Projecting to DTO to avoid loading unnecessary data
+            .AsQueryable();
+
+        if (isEmployee)
+        {
+            if (!employeeDepartmentId.HasValue)
             {
-                Id = r.Id,
-                RequestNumber = r.RequestNumber,
-                Title = r.Title,
-                Description = r.Description,
-                Status = r.Status,
+                return new List<ServiceRequestDetailDto>();
+            }
+
+            query = query.Where(request =>
+                request.AssignedCategory != null &&
+                request.AssignedCategory.DepartmentId == employeeDepartmentId.Value);
+        }
+
+        return await query
+            .OrderByDescending(request => request.CreatedAt)
+            .Select(request => new ServiceRequestDetailDto
+            {
+                Id = request.Id,
+                RequestNumber = request.RequestNumber,
+                Title = request.Title,
+                Description = request.Description,
+                Status = request.Status,
+
+                PredictedCategoryId = request.PredictedCategoryId,
                 PredictedCategoryName =
-                    r.PredictedCategory != null
-                        ? r.PredictedCategory.Name
+                    request.PredictedCategory != null
+                        ? request.PredictedCategory.Name
                         : null,
-                PredictedCategoryId = r.PredictedCategoryId,      // Map the predicted category identifier to the list response.
+
                 AssignedCategoryName =
-                    r.AssignedCategory != null
-                        ? r.AssignedCategory.Name
+                    request.AssignedCategory != null
+                        ? request.AssignedCategory.Name
                         : null,
-                PredictionScore = r.PredictionScore,
-                PredictionScoreMargin = r.PredictionScoreMargin,
-                IsAutoAssigned = r.IsAutoAssigned,
-                CreatedAt = r.CreatedAt,
 
-                PredictedDepartmentId = r.PredictedCategory != null
-                ? r.PredictedCategory.DepartmentId
-                : null,
+                PredictionScore = request.PredictionScore,
+                PredictionScoreMargin = request.PredictionScoreMargin,
+                IsAutoAssigned = request.IsAutoAssigned,
+                CreatedAt = request.CreatedAt,
 
-                PredictedDepartmentName = r.PredictedCategory != null
-                ? r.PredictedCategory.Department.Name
-                : null,
+                PredictedDepartmentId =
+                    request.PredictedCategory != null
+                        ? request.PredictedCategory.DepartmentId
+                        : null,
 
-                AssignedDepartmentId = r.AssignedCategory != null
-                ? r.AssignedCategory.DepartmentId
-                : null,
+                PredictedDepartmentName =
+                    request.PredictedCategory != null
+                        ? request.PredictedCategory.Department.Name
+                        : null,
 
-                AssignedDepartmentName = r.AssignedCategory != null
-                ? r.AssignedCategory.Department.Name
-                : null,
+                AssignedDepartmentId =
+                    request.AssignedCategory != null
+                        ? request.AssignedCategory.DepartmentId
+                        : null,
+
+                AssignedDepartmentName =
+                    request.AssignedCategory != null
+                        ? request.AssignedCategory.Department.Name
+                        : null
             })
-            .ToListAsync(); // Execute the query and return the list of DTOs
+            .ToListAsync();
     }
 
     public async Task<bool> UpdateStatusAsync(int id, UpdateRequestStatusDto dto)
     {
-        var request = await _context.ServiceRequests
-            .FirstOrDefaultAsync(r => r.Id == id);
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        var isEmployee = user?.IsInRole("Employee") == true;
+
+        var departmentIdClaim = user?
+            .FindFirst("departmentId")?
+            .Value;
+
+        int? employeeDepartmentId = int.TryParse(
+            departmentIdClaim,
+            out var parsedDepartmentId)
+                ? parsedDepartmentId
+                : null;
+
+        var query = _context.ServiceRequests
+            .Include(request => request.AssignedCategory)
+            .AsQueryable();
+
+        if (isEmployee)
+        {
+            if (!employeeDepartmentId.HasValue)
+            {
+                return false;
+            }
+
+            query = query.Where(request =>
+                request.AssignedCategory != null &&
+                request.AssignedCategory.DepartmentId ==
+                    employeeDepartmentId.Value);
+        }
+
+        var request = await query
+            .FirstOrDefaultAsync(request => request.Id == id);
 
         if (request is null)
+        {
             return false;
+        }
 
         var oldStatus = request.Status;
 
@@ -234,7 +333,8 @@ public class ServiceRequestService : IServiceRequestService
             ServiceRequestId = request.Id,
             OldStatus = oldStatus,
             NewStatus = dto.NewStatus,
-            Description = dto.Description?.Trim()
+            Description = dto.Description?.Trim(),
+            ChangedAt = DateTime.UtcNow
         };
 
         _context.RequestStatusHistories.Add(history);
@@ -243,32 +343,63 @@ public class ServiceRequestService : IServiceRequestService
 
         return true;
     }
-
-    public async Task<List<RequestStatusHistoryDto>?> GetStatusHistoryAsync(
-    int requestId)
+    public async Task<List<RequestStatusHistoryDto>?> GetStatusHistoryAsync(int requestId)
     {
-        // Check whether the service request exists before retrieving its history.
-        var requestExists = await _context.ServiceRequests
-            .AnyAsync(r => r.Id == requestId);
+        var user = _httpContextAccessor.HttpContext?.User;
+
+        var isEmployee = user?.IsInRole("Employee") == true;
+
+        var departmentIdClaim = user?
+            .FindFirst("departmentId")?
+            .Value;
+
+        int? employeeDepartmentId = int.TryParse(
+            departmentIdClaim,
+            out var parsedDepartmentId)
+                ? parsedDepartmentId
+                : null;
+
+        var requestQuery = _context.ServiceRequests
+            .AsNoTracking()
+            .Include(request => request.AssignedCategory)
+            .AsQueryable();
+
+        if (isEmployee)
+        {
+            if (!employeeDepartmentId.HasValue)
+            {
+                return null;
+            }
+
+            requestQuery = requestQuery.Where(request =>
+                request.AssignedCategory != null &&
+                request.AssignedCategory.DepartmentId ==
+                    employeeDepartmentId.Value);
+        }
+
+        var requestExists = await requestQuery
+            .AnyAsync(request => request.Id == requestId);
 
         if (!requestExists)
+        {
             return null;
+        }
 
-        // Retrieve all status changes for the selected service request.
         return await _context.RequestStatusHistories
-            .Where(h => h.ServiceRequestId == requestId)
-            .OrderBy(h => h.ChangedAt)
-            .Select(h => new RequestStatusHistoryDto
+            .AsNoTracking()
+            .Where(history =>
+                history.ServiceRequestId == requestId)
+            .OrderBy(history => history.ChangedAt)
+            .Select(history => new RequestStatusHistoryDto
             {
-                Id = h.Id,
-                OldStatus = h.OldStatus,
-                NewStatus = h.NewStatus,
-                Description = h.Description,
-                ChangedAt = h.ChangedAt
+                Id = history.Id,
+                OldStatus = history.OldStatus,
+                NewStatus = history.NewStatus,
+                Description = history.Description,
+                ChangedAt = history.ChangedAt
             })
             .ToListAsync();
     }
-
     public async Task<List<CategoryPredictionCandidateDto>> GetPredictionCandidatesAsync(int id)
     {
         // Find the request by its database ID.
@@ -338,7 +469,6 @@ public class ServiceRequestService : IServiceRequestService
         // Return the final Top 5 candidate list to the controller.
         return candidateDtos;
     }
-
     public async Task<bool> AssignCategoryAsync(int id, AssignCategoryDto dto)
     {
         // Load the service request that will be updated.

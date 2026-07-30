@@ -85,7 +85,7 @@ public class ServiceRequestsController : ControllerBase
     }
 
     // Returns the five strongest category suggestions for the specified request.
-    [Authorize(Roles = "Admin,Employee")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id:int}/prediction-candidates")]
     public async Task<IActionResult> GetPredictionCandidates(int id)
     {
@@ -100,7 +100,7 @@ public class ServiceRequestsController : ControllerBase
         return Ok(candidates);
     }
 
-    [Authorize(Roles = "Admin,Employee")]
+    [Authorize(Roles = "Admin")]
     [HttpPut("{id:int}/assign")]
     public async Task<IActionResult> AssignCategory(int id, AssignCategoryDto dto)
     {
