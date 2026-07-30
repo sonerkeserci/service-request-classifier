@@ -10,4 +10,8 @@
     <Folder Include="Models\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RequestClassifier.Application\RequestClassifier.Application.csproj" />
+  </ItemGroup>
+
 </Project>
