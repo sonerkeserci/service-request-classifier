@@ -36,7 +36,7 @@ public class ServiceRequestService : IServiceRequestService
 
         // Find the active database category whose name matches the category name returned by the trained model.
         var predictedCategory = await _context.RequestCategories
-            .Include(category => category!.Department)
+            .Include(category => category.Department)
             .FirstOrDefaultAsync(category =>
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
@@ -144,7 +144,7 @@ public class ServiceRequestService : IServiceRequestService
         {
             RequestNumber = serviceRequest.RequestNumber,
             Status = serviceRequest.Status,
-            AssignedDepartmentName = serviceRequest.AssignedCategory!.Department.Name,
+            AssignedDepartmentName = serviceRequest.AssignedCategory?.Department?.Name,
             CreatedAt = serviceRequest.CreatedAt
         };
     }
@@ -168,7 +168,7 @@ public class ServiceRequestService : IServiceRequestService
                 Title = request.Title,
                 Description = request.Description,
                 Status = request.Status,
-                AssignedDepartmentName = request.AssignedCategory!.Department.Name,
+                AssignedDepartmentName = request.AssignedCategory?.Department?.Name,
                 CreatedAt = request.CreatedAt,
             };
     }
