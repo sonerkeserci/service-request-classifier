@@ -293,7 +293,14 @@ public class ServiceRequestService : IServiceRequestService
                 AssignedDepartmentName =
                     request.AssignedCategory != null
                         ? request.AssignedCategory.Department.Name
-                        : null
+                        : null,
+
+                RequesterFirstName = request.RequesterFirstName,
+                RequesterLastName = request.RequesterLastName,
+                RequesterEmail = request.RequesterEmail,
+                RequesterPhoneNumber = request.RequesterPhoneNumber,
+
+
             })
             .ToListAsync();
     }
