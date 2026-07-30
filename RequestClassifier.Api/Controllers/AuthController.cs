@@ -24,18 +24,39 @@ namespace RequestClassifier.Api.Controllers
             if (result is null)
                 return Unauthorized();
 
-            return Ok(result);            
+            return Ok(result);
         }
 
         [Authorize(Roles = "Admin")]
         [HttpPost("employees")]
         public async Task<IActionResult> CreateEmployee(CreateEmployeeDto dto)
-        { 
+        {
             var result = await _service.CreateEmployeeAsync(dto);
-            if (!result)  
+            if (!result)
                 return BadRequest();
 
-            return StatusCode(StatusCodes.Status201Created); 
+            return StatusCode(StatusCodes.Status201Created);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("employees")]
+        public async Task<IActionResult> GetEmployees()
+        {
+            var result = await _service.GetEmployeesAsync();
+
+            return Ok(result);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("employees/{id}")]
+        public async Task<IActionResult> UpdateEmployee(string id, UpdateEmployeeDto dto)
+        {
+            var result = await _service.UpdateEmployeeAsync(id, dto);
+
+            if (!result)
+                return BadRequest();
+
+            return NoContent();
         }
     }
 }

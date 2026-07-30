@@ -128,6 +128,96 @@ public class AuthService : IAuthService
         return true;
     }
 
+    public async Task<List<EmployeeListItemDto>> GetEmployeesAsync()
+    {
+        var users = await _userManager.Users.
+            Include(user => user.Department).
+            ToListAsync();
+
+        var employees = new List<EmployeeListItemDto>();
+
+        foreach (var user in users)
+        {
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var role = roles.FirstOrDefault();
+
+            if (role is null)
+                continue;
+
+            employees.Add(new EmployeeListItemDto
+            {
+                Id = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email!,
+                Role = role,
+                DepartmentId = user.DepartmentId,
+                DepartmentName = user.Department?.Name,
+                IsActive = user.IsActive
+            });
+        }
+
+        return employees;
+    }
+
+    public async Task<bool> UpdateEmployeeAsync(string id, UpdateEmployeeDto dto)
+    {
+        // Find the user that will be updated.
+        var user = await _userManager.FindByIdAsync(id);
+
+        if (user is null)
+            return false;
+
+        // Validate the selected department when one is provided.
+        if (dto.DepartmentId.HasValue)
+        {
+            var departmentExists = await _context.Departments
+                .AnyAsync(department =>
+                    department.Id == dto.DepartmentId.Value &&
+                    department.IsActive);
+
+            if (!departmentExists)
+                return false;
+        }
+
+        var normalizedEmail = dto.Email.Trim().ToLowerInvariant();
+
+        // Prevent another account from using the same email address.
+        var userWithSameEmail =
+            await _userManager.FindByEmailAsync(normalizedEmail);
+
+        if (userWithSameEmail is not null &&
+            userWithSameEmail.Id != user.Id)
+        {
+            return false;
+        }
+
+        user.FirstName = dto.FirstName.Trim();
+        user.LastName = dto.LastName.Trim();
+        user.DepartmentId = dto.DepartmentId;
+        user.IsActive = dto.IsActive;
+        user.UpdatedAt = DateTime.UtcNow;
+
+        // Update both Identity email and username consistently.
+        var emailResult = await _userManager.SetEmailAsync(
+            user,
+            normalizedEmail);
+
+        if (!emailResult.Succeeded)
+            return false;
+
+        var userNameResult = await _userManager.SetUserNameAsync(
+            user,
+            normalizedEmail);
+
+        if (!userNameResult.Succeeded)
+            return false;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        return updateResult.Succeeded;
+    }
     private (string Token, DateTime Expiration) GenerateToken(ApplicationUser user, string role)
     {
         var jwtSection = _configuration.GetSection("Jwt");
