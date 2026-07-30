@@ -39,4 +39,12 @@ public class ServiceRequestDetailDto
     public int? AssignedDepartmentId { get; set; }
 
     public string? AssignedDepartmentName { get; set; }
+
+    public string RequesterFirstName { get; set; } = string.Empty;
+
+    public string RequesterLastName { get; set; } = string.Empty;
+
+    public string RequesterEmail { get; set; } = string.Empty;
+
+    public string? RequesterPhoneNumber { get; set; }
 }
