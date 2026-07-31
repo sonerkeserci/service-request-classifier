@@ -138,145 +138,147 @@
 					</div>
 				}
 
-				<div class="card border-0 shadow-sm rounded-4">
-					<div class="card-body p-4 p-lg-5">
+				@if (result is null)
+				{
+					<div class="card border-0 shadow-sm rounded-4">
+						<div class="card-body p-4 p-lg-5">
 
-						<form asp-controller="Requests"
-							  asp-action="Create"
-							  method="post">
+							<form asp-controller="Requests"
+								  asp-action="Create"
+								  method="post">
 
-							@Html.AntiForgeryToken()
+								@Html.AntiForgeryToken()
 
-							<div asp-validation-summary="ModelOnly"
-								 class="alert alert-danger">
-							</div>
+								<div asp-validation-summary="ModelOnly"
+									 class="alert alert-danger">
+								</div>
 
-							<h2 class="h5 fw-bold mb-4">
-								İletişim Bilgileri
-							</h2>
+								<h2 class="h5 fw-bold mb-4">
+									İletişim Bilgileri
+								</h2>
 
-							<div class="row g-3 mb-4">
+								<div class="row g-3 mb-4">
 
-								<div class="col-md-6">
-									<label asp-for="RequesterFirstName"
+									<div class="col-md-6">
+										<label asp-for="RequesterFirstName"
+											   class="form-label">
+
+											Ad
+										</label>
+
+										<input asp-for="RequesterFirstName"
+											   class="form-control"
+											   placeholder="Adınızı girin" />
+
+										<span asp-validation-for="RequesterFirstName"
+											  class="text-danger small">
+										</span>
+									</div>
+
+									<div class="col-md-6">
+										<label asp-for="RequesterLastName"
+											   class="form-label">
+
+											Soyad
+										</label>
+
+										<input asp-for="RequesterLastName"
+											   class="form-control"
+											   placeholder="Soyadınızı girin" />
+
+										<span asp-validation-for="RequesterLastName"
+											  class="text-danger small">
+										</span>
+									</div>
+
+									<div class="col-md-6">
+										<label asp-for="RequesterEmail"
+											   class="form-label">
+
+											E-posta
+										</label>
+
+										<input asp-for="RequesterEmail"
+											   type="email"
+											   class="form-control"
+											   placeholder="ornek@email.com" />
+
+										<span asp-validation-for="RequesterEmail"
+											  class="text-danger small">
+										</span>
+									</div>
+
+									<div class="col-md-6">
+										<label asp-for="RequesterPhoneNumber"
+											   class="form-label">
+
+											Telefon
+										</label>
+
+										<input asp-for="RequesterPhoneNumber"
+											   type="tel"
+											   class="form-control"
+											   placeholder="0555 111 22 33" />
+
+										<span asp-validation-for="RequesterPhoneNumber"
+											  class="text-danger small">
+										</span>
+									</div>
+
+								</div>
+
+								<hr class="my-4" />
+
+								<h2 class="h5 fw-bold mb-4">
+									Talep Bilgileri
+								</h2>
+
+								<div class="mb-3">
+									<label asp-for="Title"
 										   class="form-label">
 
-										Ad
+										Başlık
 									</label>
 
-									<input asp-for="RequesterFirstName"
+									<input asp-for="Title"
 										   class="form-control"
-										   placeholder="Adınızı girin" />
+										   placeholder="Talebinizi kısa bir başlıkla özetleyin" />
 
-									<span asp-validation-for="RequesterFirstName"
+									<span asp-validation-for="Title"
 										  class="text-danger small">
 									</span>
 								</div>
 
-								<div class="col-md-6">
-									<label asp-for="RequesterLastName"
+								<div class="mb-4">
+									<label asp-for="Description"
 										   class="form-label">
 
-										Soyad
+										Açıklama
 									</label>
 
-									<input asp-for="RequesterLastName"
-										   class="form-control"
-										   placeholder="Soyadınızı girin" />
-
-									<span asp-validation-for="RequesterLastName"
-										  class="text-danger small">
-									</span>
-								</div>
-
-								<div class="col-md-6">
-									<label asp-for="RequesterEmail"
-										   class="form-label">
-
-										E-posta
-									</label>
-
-									<input asp-for="RequesterEmail"
-										   type="email"
-										   class="form-control"
-										   placeholder="ornek@email.com" />
-
-									<span asp-validation-for="RequesterEmail"
-										  class="text-danger small">
-									</span>
-								</div>
-
-								<div class="col-md-6">
-									<label asp-for="RequesterPhoneNumber"
-										   class="form-label">
-
-										Telefon
-									</label>
-
-									<input asp-for="RequesterPhoneNumber"
-										   type="tel"
-										   class="form-control"
-										   placeholder="0555 111 22 33" />
-
-									<span asp-validation-for="RequesterPhoneNumber"
-										  class="text-danger small">
-									</span>
-								</div>
-
-							</div>
-
-							<hr class="my-4" />
-
-							<h2 class="h5 fw-bold mb-4">
-								Talep Bilgileri
-							</h2>
-
-							<div class="mb-3">
-								<label asp-for="Title"
-									   class="form-label">
-
-									Başlık
-								</label>
-
-								<input asp-for="Title"
-									   class="form-control"
-									   placeholder="Talebinizi kısa bir başlıkla özetleyin" />
-
-								<span asp-validation-for="Title"
-									  class="text-danger small">
-								</span>
-							</div>
-
-							<div class="mb-4">
-								<label asp-for="Description"
-									   class="form-label">
-
-									Açıklama
-								</label>
-
-								<textarea asp-for="Description"
-										  class="form-control"
-										  rows="7"
-										  placeholder="Talebinizi ayrıntılı biçimde açıklayın...">
+									<textarea asp-for="Description"
+											  class="form-control"
+											  rows="7"
+											  placeholder="Talebinizi ayrıntılı biçimde açıklayın...">
                                 </textarea>
 
-								<span asp-validation-for="Description"
-									  class="text-danger small">
-								</span>
-							</div>
+									<span asp-validation-for="Description"
+										  class="text-danger small">
+									</span>
+								</div>
 
-							<button type="submit"
-									class="btn btn-primary btn-lg w-100">
+								<button type="submit"
+										class="btn btn-primary btn-lg w-100">
 
-								<i class="bi bi-send me-2"></i>
-								Talebi Gönder
-							</button>
+									<i class="bi bi-send me-2"></i>
+									Talebi Gönder
+								</button>
 
-						</form>
+							</form>
 
+						</div>
 					</div>
-				</div>
-
+				}
 			</div>
 		</div>
 

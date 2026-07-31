@@ -160,6 +160,16 @@
 
 				@if (result is not null)
 				{
+					var turkeyTimeZone =
+						TimeZoneInfo.FindSystemTimeZoneById(
+							"Turkey Standard Time");
+
+										var localCreatedAt =
+											TimeZoneInfo.ConvertTimeFromUtc(
+												DateTime.SpecifyKind(
+													result.CreatedAt,
+													DateTimeKind.Utc),
+												turkeyTimeZone);
 					<div class="card border-0 shadow-sm rounded-4">
 
 						<div class="card-header bg-primary text-white border-0 rounded-top-4 p-4">
@@ -232,8 +242,7 @@
 									</span>
 
 									<strong>
-										@result.CreatedAt.ToLocalTime()
-										.ToString("dd.MM.yyyy HH:mm")
+										@localCreatedAt.ToString("dd.MM.yyyy HH:mm")
 									</strong>
 
 								</div>
