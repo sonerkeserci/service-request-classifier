@@ -1,0 +1,402 @@
+﻿@{
+	ViewData["Title"] = "Talepler";
+}
+
+<!-- Page header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+	<div>
+		<h2 class="mb-1">Talepler</h2>
+		<p class="text-muted mb-0">
+			Sisteme gönderilen hizmet taleplerini görüntüleyin.
+		</p>
+	</div>
+	<!-- Reloads the request list without refreshing the entire page -->
+	<button class="btn btn-outline-primary" onclick="loadRequests()">
+		Yenile
+	</button>
+</div>
+
+<!-- This area is displayed while the request list is being loaded from the server. -->
+<div id="loadingArea" class="text-center py-5">
+	<div class="spinner-border text-primary" role="status">
+		<span class="visually-hidden">Yükleniyor...</span>
+	</div>
+
+	<p class="text-muted mt-3 mb-0">
+		Talepler yükleniyor...
+	</p>
+</div>
+
+<!-- API or network errors are displayed in this area. It is hidden by default. -->
+<div id="errorArea" class="alert alert-danger d-none"></div>
+
+<!-- The request table is hidden initially. It becomes visible after the requests are loaded successfully. -->
+<div id="requestTableArea" class="card border-0 shadow-sm d-none">
+	<div class="card-body p-0">
+		<div class="table-responsive">
+			<table class="table table-hover align-middle mb-0">
+				<thead class="table-light">
+					<tr>
+						<th>Talep No</th>
+						<th>Başlık</th>
+						<th>Vatandaş</th>
+						<th>Tahmin Edilen Kategori</th>
+						<th>Atanan Kategori</th>
+						<th>Durum</th>
+						<th>Tahmin Skoru</th>
+						<th>Tarih</th>
+						<th class="text-end">İşlem</th>
+					</tr>
+				</thead>
+
+				<!--  Request rows will be inserted here dynamically by JavaScript.  -->
+				<tbody id="requestTableBody">
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>
+
+<!-- This area is displayed when the API returns an empty request list. -->
+<div id="emptyArea" class="alert alert-info d-none">
+	Görüntülenecek talep bulunamadı.
+</div>
+
+@section Scripts {
+	<script>
+		/*
+		 * Runs after the HTML document is fully loaded.
+		 * Automatically loads the request list when the page opens.
+		 */
+		document.addEventListener("DOMContentLoaded", function() {
+			loadRequests();
+		});
+
+		/*
+		 * Loads service requests from the PanelController.
+		 *
+		 * The browser sends a GET request to:
+		 * /Panel/GetRequests
+		 *
+		 * The controller will call the API by using the JWT token
+		 * stored in the session.
+		 */
+		async function loadRequests() {
+
+			// Get references to the HTML elements used by the page.
+			const loadingArea = document.getElementById("loadingArea");
+			const errorArea = document.getElementById("errorArea");
+			const tableArea = document.getElementById("requestTableArea");
+			const emptyArea = document.getElementById("emptyArea");
+			const tableBody = document.getElementById("requestTableBody");
+
+			/*
+			 * Reset the page before starting a new request.
+			 *
+			 * Show the loading spinner.
+			 * Hide the previous error, table and empty-message areas.
+			 * Clear previously generated table rows.
+			 */
+			loadingArea.classList.remove("d-none");
+			errorArea.classList.add("d-none");
+			tableArea.classList.add("d-none");
+			emptyArea.classList.add("d-none");
+
+			tableBody.innerHTML = "";
+
+			try {
+				/*
+				 * Sends a request to the MVC controller.
+				 *
+				 * This does not directly call the API project.
+				 * PanelController receives this request and then
+				 * calls the API with the user's JWT token.
+				 */
+				const response = await fetch("/Panel/GetRequests");
+
+				/*
+				 * HTTP 401 means that the user is not authorized.
+				 *
+				 * This may happen when:
+				 * - The session does not contain a token.
+				 * - The token has expired.
+				 * - The API rejects the token.
+				 */
+				if (response.status === 401) {
+					window.location.href = "/Account/Login";
+					return;
+				}
+
+				
+				/*
+				 * response.ok is true for successful HTTP status codes
+				 * between 200 and 299.
+				 */
+				if (!response.ok) {
+					throw new Error("Talepler alınırken bir hata oluştu.");
+				}
+
+				/*
+				 * Converts the JSON response into a JavaScript array.
+				 *
+				 * Expected structure:
+				 *
+				 * [
+				 *   {
+				 *     id: 1,
+				 *     requestNumber: "REQ-2026-0001",
+				 *     title: "Yolda çukur var",
+				 *     requesterFirstName: "Ahmet",
+				 *     requesterLastName: "Yılmaz",
+				 *     predictedCategoryName: "Yol Bakım",
+				 *     assignedCategoryName: "Yol Bakım",
+				 *     status: 2,
+				 *     predictionScore: 0.87,
+				 *     isLowConfidence: false,
+				 *     createdAt: "2026-07-31T10:30:00"
+				 *   }
+				 * ]
+				 */
+				const requests = await response.json();
+
+				/*
+				 * Show the empty message when the API returns
+				 * null, undefined or an empty array.
+				 */
+				if (!requests || requests.length === 0) {
+					emptyArea.classList.remove("d-none");
+					return;
+				}
+
+				/*
+				 * Creates one table row for each service request.
+				 */
+				requests.forEach(request => {
+					const row = document.createElement("tr"); // Create a new HTML table row.
+
+					/*
+					 * Fill the row using the request data.
+					 *
+					 * escapeHtml is used for user-provided text
+					 * to reduce the risk of HTML injection.
+					 */
+					row.innerHTML = `
+								<td>
+									<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
+								</td>
+
+								<td>
+									${escapeHtml(request.title ?? "-")}
+								</td>
+
+								<td>
+									${getRequesterName(request)}
+								</td>
+
+								<td>
+									${escapeHtml(request.predictedCategoryName ?? "-")}
+								</td>
+
+								<td>
+									${escapeHtml(request.assignedCategoryName ?? "-")}
+								</td>
+
+								<td>
+									${getStatusBadge(request.status)}
+								</td>
+
+								<td>
+									${getPredictionScore(request)}
+								</td>
+
+								<td>
+									${formatDate(request.createdAt)}
+								</td>
+
+								<td class="text-end">
+									<button
+										type="button"
+										class="btn btn-sm btn-primary"
+										onclick="openRequestDetail(${request.id})">
+										Detay
+									</button>
+								</td>
+							`;
+
+					tableBody.appendChild(row);	// Add the generated row to the table body.
+				});
+
+				tableArea.classList.remove("d-none");	// Display the table after all rows are generated.
+			}
+			catch (error) {
+				/*
+				* Displays errors caused by:
+				* - Network problems
+				* - Invalid JSON
+				* - API errors
+				* - Controller errors
+				*/
+				errorArea.textContent = error.message;
+				errorArea.classList.remove("d-none");
+			}
+			finally {
+				/*
+				 * The finally block always runs,
+				 * whether the request succeeds or fails.
+				 */
+				loadingArea.classList.add("d-none");
+			}
+		}
+
+		/*
+		 * Opens the detail area for a selected request.
+		 *
+		 * The offcanvas detail panel will be implemented later.
+		 * For now, the selected request ID is written to
+		 * the browser console.
+		 */
+		function openRequestDetail(requestId) {
+			console.log("Talep detayı:", requestId);
+		}
+
+		function getRequesterName(request) {
+			const firstName = request.requesterFirstName ?? "";
+			const lastName = request.requesterLastName ?? "";
+			const fullName = `${firstName} ${lastName}`.trim();
+
+			return escapeHtml(fullName || "-");
+		}
+
+		/*
+		 * Opens the detail area for a selected request.
+		 *
+		 * The offcanvas detail panel will be implemented later.
+		 * For now, the selected request ID is written to
+		 * the browser console.
+		 */
+		function getPredictionScore(request) {
+			if (request.predictionScore === null ||
+				request.predictionScore === undefined) {
+				return "-";
+			}
+
+			const percentage = request.predictionScore * 100;
+			const formattedScore = `%${percentage.toFixed(1)}`;
+
+			/*
+			* isLowConfidence is calculated in the backend
+			* by comparing PredictionScore with
+			* MinimumClassificationScoreThreshold.
+			*/
+			if (request.isLowConfidence) {
+				return `
+							<span class="badge text-bg-warning">
+								${formattedScore}
+							</span>
+						`;
+			}
+
+			return `
+						<span class="badge text-bg-success">
+							${formattedScore}
+						</span>
+					`;
+		}
+
+		/*
+		 * Converts the numeric RequestStatus enum value
+		 * into a readable Bootstrap badge.
+		 *
+		 * Backend enum:
+		 *
+		 * 0 = Received
+		 * 1 = Classified
+		 * 2 = Assigned
+		 * 3 = InProgress
+		 * 4 = Completed
+		 * 5 = Rejected
+		 */
+		function getStatusBadge(status) {
+			const statusMap = {
+				0: {
+					text: "Alındı",
+					cssClass: "text-bg-secondary"
+				},
+				1: {
+					text: "Sınıflandırıldı",
+					cssClass: "text-bg-info"
+				},
+				2: {
+					text: "Atandı",
+					cssClass: "text-bg-primary"
+				},
+				3: {
+					text: "İşlemde",
+					cssClass: "text-bg-warning"
+				},
+				4: {
+					text: "Tamamlandı",
+					cssClass: "text-bg-success"
+				},
+				5: {
+					text: "Reddedildi",
+					cssClass: "text-bg-danger"
+				}
+			};
+
+			/*
+			* Use a default value when the backend sends
+			* an unknown status code.
+			*/
+			const statusInfo = statusMap[status] ?? {
+				text: "Bilinmiyor",
+				cssClass: "text-bg-dark"
+			};
+
+			return `
+						<span class="badge ${statusInfo.cssClass}">
+							${statusInfo.text}
+						</span>
+					`;
+		}
+
+		/*
+		* Converts the API date value into a Turkish
+		* local date and time string.
+		*
+		* Example:
+		* 2026-07-31T10:30:00
+		*
+		* Result:
+		* 31.07.2026 10:30:00
+		*/
+		function formatDate(dateValue) {
+			if (!dateValue) {
+				return "-";
+			}
+
+			const date = new Date(dateValue);
+
+			if (Number.isNaN(date.getTime())) {
+				return "-";
+			}
+
+			return date.toLocaleString("tr-TR");
+		}
+
+		/*
+		 * Encodes special HTML characters.
+		 *
+		 * This prevents user-entered text from being interpreted
+		 * as executable HTML or JavaScript.
+		 */
+		function escapeHtml(value) {
+			return String(value)
+				.replaceAll("&", "&amp;")
+				.replaceAll("<", "&lt;")
+				.replaceAll(">", "&gt;")
+				.replaceAll('"', "&quot;")
+				.replaceAll("'", "&#039;");
+		}
+	</script>
+}
