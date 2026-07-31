@@ -1,0 +1,230 @@
+﻿:root {
+    --panel-sidebar-width: 260px;
+    --panel-sidebar-background: #152238;
+    --panel-sidebar-hover: rgba(255, 255, 255, 0.08);
+    --panel-sidebar-active: #0d6efd;
+    --panel-page-background: #f5f7fb;
+    --panel-border-color: #e4e9f0;
+}
+
+html,
+body {
+    min-height: 100%;
+}
+
+.panel-body {
+    margin: 0;
+    background-color: var(--panel-page-background);
+    color: #202938;
+}
+
+.panel-wrapper {
+    min-height: 100vh;
+    display: flex;
+}
+
+.panel-sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--panel-sidebar-width);
+    display: flex;
+    flex-direction: column;
+    background-color: var(--panel-sidebar-background);
+    color: white;
+    z-index: 1030;
+}
+
+.panel-brand {
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 1.15rem;
+    font-weight: 700;
+}
+
+.panel-navigation {
+    flex: 1;
+    padding: 20px 14px;
+    overflow-y: auto;
+}
+
+.panel-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    text-decoration: none;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .panel-nav-link i {
+        width: 22px;
+        font-size: 1.15rem;
+        text-align: center;
+    }
+
+    .panel-nav-link:hover {
+        color: white;
+        background-color: var(--panel-sidebar-hover);
+    }
+
+    .panel-nav-link.active {
+        color: white;
+        background-color: var(--panel-sidebar-active);
+    }
+
+.panel-sidebar-footer {
+    padding: 16px 14px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+    .panel-sidebar-footer form {
+        margin: 0;
+    }
+
+.panel-logout-button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 10px;
+    background-color: transparent;
+    color: rgba(255, 255, 255, 0.75);
+    text-align: left;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+    .panel-logout-button:hover {
+        color: white;
+        background-color: rgba(220, 53, 69, 0.2);
+    }
+
+.panel-content-wrapper {
+    width: calc(100% - var(--panel-sidebar-width));
+    min-height: 100vh;
+    margin-left: var(--panel-sidebar-width);
+}
+
+.panel-header {
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 12px 28px;
+    background-color: white;
+    border-bottom: 1px solid var(--panel-border-color);
+}
+
+.panel-page-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+}
+
+.panel-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panel-user-icon {
+    width: 42px;
+    height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #e7f1ff;
+    color: #0d6efd;
+    font-size: 1.2rem;
+}
+
+.panel-user-email {
+    max-width: 240px;
+    overflow: hidden;
+    color: #202938;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.panel-user-role {
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.panel-main {
+    padding: 28px;
+}
+
+.panel-card {
+    border: 1px solid var(--panel-border-color);
+    border-radius: 16px;
+    background-color: white;
+    box-shadow: 0 4px 20px rgba(32, 41, 56, 0.04);
+}
+
+.panel-stat-icon {
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    font-size: 1.4rem;
+}
+
+@media (max-width: 991.98px) {
+    :root {
+        --panel-sidebar-width: 82px;
+    }
+
+    .panel-brand span,
+    .panel-nav-link span,
+    .panel-logout-button span {
+        display: none;
+    }
+
+    .panel-brand,
+    .panel-nav-link,
+    .panel-logout-button {
+        justify-content: center;
+    }
+
+    .panel-brand {
+        padding: 0;
+    }
+
+    .panel-navigation {
+        padding-right: 10px;
+        padding-left: 10px;
+    }
+
+    .panel-header {
+        padding-right: 18px;
+        padding-left: 18px;
+    }
+
+    .panel-main {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .panel-user-email {
+        display: none;
+    }
+
+    .panel-main {
+        padding: 14px;
+    }
+}
