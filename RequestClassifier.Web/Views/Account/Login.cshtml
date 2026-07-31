@@ -1,0 +1,164 @@
+﻿@model RequestClassifier.Application.DTOs.Auth.LoginDto
+
+@{
+    ViewData["Title"] = "Personel Girişi";
+}
+
+<section class="py-5">
+    <div class="container">
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-5">
+
+                <div class="text-center mb-4">
+
+                    <div class="d-inline-flex align-items-center justify-content-center
+                        bg-primary-subtle text-primary rounded-circle mb-3"
+                         style="width: 72px; height: 72px;">
+
+                        <i class="bi bi-person-lock fs-2"></i>
+                    </div>
+
+                    <h1 class="fw-bold">
+                        Personel Girişi
+                    </h1>
+
+                    <p class="text-secondary">
+                        Yönetim paneline erişmek için personel hesabınızla giriş yapın.
+                    </p>
+
+                </div>
+
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4 p-lg-5">
+
+                        <form asp-controller="Account"
+                              asp-action="Login"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <div asp-validation-summary="ModelOnly"
+                                 class="alert alert-danger">
+                            </div>
+
+                            <div class="mb-3">
+
+                                <label asp-for="Email"
+                                       class="form-label">
+
+                                    E-posta
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-envelope"></i>
+                                    </span>
+
+                                    <input asp-for="Email"
+                                           type="email"
+                                           class="form-control"
+                                           placeholder="personel@belediye.gov.tr"
+                                           autocomplete="email" />
+
+                                </div>
+
+                                <span asp-validation-for="Email"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+                            <div class="mb-4">
+
+                                <label asp-for="Password"
+                                       class="form-label">
+
+                                    Şifre
+                                </label>
+
+                                <div class="input-group">
+
+                                    <span class="input-group-text bg-white">
+                                        <i class="bi bi-lock"></i>
+                                    </span>
+
+                                    <input asp-for="Password"
+                                           id="passwordInput"
+                                           type="password"
+                                           class="form-control"
+                                           placeholder="Şifrenizi girin"
+                                           autocomplete="current-password" />
+
+                                    <button type="button"
+                                            class="btn btn-outline-secondary"
+                                            onclick="togglePassword()"
+                                            aria-label="Şifreyi göster veya gizle">
+
+                                        <i id="passwordIcon"
+                                           class="bi bi-eye">
+                                        </i>
+
+                                    </button>
+
+                                </div>
+
+                                <span asp-validation-for="Password"
+                                      class="text-danger small">
+                                </span>
+
+                            </div>
+
+                            <button type="submit"
+                                    class="btn btn-primary btn-lg w-100">
+
+                                <i class="bi bi-box-arrow-in-right me-2"></i>
+                                Giriş Yap
+                            </button>
+
+                        </form>
+
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+
+                    <a asp-controller="Home"
+                       asp-action="Index"
+                       class="text-decoration-none">
+
+                        <i class="bi bi-arrow-left me-1"></i>
+                        Ana sayfaya dön
+                    </a>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function togglePassword() {
+            const passwordInput =
+                document.getElementById("passwordInput");
+
+            const passwordIcon =
+                document.getElementById("passwordIcon");
+
+            const isPassword =
+                passwordInput.type === "password";
+
+            passwordInput.type =
+                isPassword ? "text" : "password";
+
+            passwordIcon.className =
+                isPassword
+                    ? "bi bi-eye-slash"
+                    : "bi bi-eye";
+        }
+    </script>
+}
