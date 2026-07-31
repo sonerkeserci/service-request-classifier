@@ -1,0 +1,295 @@
+﻿@model RequestClassifier.Application.DTOs.ServiceRequests.CreateServiceRequestDto
+
+@using RequestClassifier.Application.DTOs.ServiceRequests
+
+@{
+	ViewData["Title"] = "Talep Oluştur";
+
+	var result =
+		ViewBag.Result as CreateServiceRequestResultDto;
+
+	string GetStatusText(RequestClassifier.Domain.Enums.RequestStatus status)
+	{
+		return status switch
+		{
+			RequestClassifier.Domain.Enums.RequestStatus.Received
+				=> "Talep alındı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Classified
+				=> "Talep sınıflandırıldı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Assigned
+				=> "Talep ilgili birime atandı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.InProgress
+				=> "Talep işleme alındı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Resolved
+				=> "Talep çözüldü.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Closed
+				=> "Talep kapatıldı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Rejected
+				=> "Talep reddedildi.",
+
+			_ => status.ToString()
+		};
+	}
+}
+
+<section class="py-5">
+	<div class="container">
+
+		<div class="row justify-content-center">
+			<div class="col-lg-8">
+
+				<div class="text-center mb-4">
+					<span class="badge bg-primary-subtle text-primary px-3 py-2 mb-3">
+						Yeni Başvuru
+					</span>
+
+					<h1 class="fw-bold">
+						Talep Oluştur
+					</h1>
+
+					<p class="text-secondary">
+						Belediye hizmetleriyle ilgili talep, şikâyet
+						veya önerinizi bize iletin.
+					</p>
+				</div>
+
+				@if (result is not null)
+				{
+					<div class="alert alert-success border-0 shadow-sm rounded-4 p-4 mb-4">
+
+						<div class="d-flex align-items-start gap-3">
+
+							<div class="fs-2">
+								<i class="bi bi-check-circle-fill"></i>
+							</div>
+
+							<div class="flex-grow-1">
+
+								<h2 class="h5 fw-bold">
+									Talebiniz başarıyla oluşturuldu
+								</h2>
+
+								<p class="mb-3">
+									Talebinizi takip edebilmek için
+									başvuru numaranızı saklayın.
+								</p>
+
+								<div class="bg-white rounded-3 p-3">
+
+									<div class="text-secondary small">
+										Başvuru numarası
+									</div>
+
+									<div class="d-flex align-items-center justify-content-between gap-3">
+
+										<strong id="requestNumber"
+												class="fs-5 text-dark">
+
+											@result.RequestNumber
+										</strong>
+
+										<button type="button"
+												class="btn btn-outline-success btn-sm"
+												onclick="copyRequestNumber()">
+
+											<i class="bi bi-copy me-1"></i>
+											Kopyala
+										</button>
+
+									</div>
+
+									<hr />
+
+									<div class="row g-3">
+
+										<div class="col-md-6">
+											<span class="text-secondary small d-block">
+												Durum
+											</span>
+
+											<strong class="text-dark">
+												@GetStatusText(result.Status)
+											</strong>
+										</div>
+
+										<div class="col-md-6">
+											<span class="text-secondary small d-block">
+												Atanan Daire
+											</span>
+
+											<strong class="text-dark">
+												@(result.AssignedDepartmentName
+													?? "Henüz atanmadı")
+											</strong>
+										</div>
+
+									</div>
+
+								</div>
+
+							</div>
+						</div>
+					</div>
+				}
+
+				<div class="card border-0 shadow-sm rounded-4">
+					<div class="card-body p-4 p-lg-5">
+
+						<form asp-controller="Requests"
+							  asp-action="Create"
+							  method="post">
+
+							@Html.AntiForgeryToken()
+
+							<div asp-validation-summary="ModelOnly"
+								 class="alert alert-danger">
+							</div>
+
+							<h2 class="h5 fw-bold mb-4">
+								İletişim Bilgileri
+							</h2>
+
+							<div class="row g-3 mb-4">
+
+								<div class="col-md-6">
+									<label asp-for="RequesterFirstName"
+										   class="form-label">
+
+										Ad
+									</label>
+
+									<input asp-for="RequesterFirstName"
+										   class="form-control"
+										   placeholder="Adınızı girin" />
+
+									<span asp-validation-for="RequesterFirstName"
+										  class="text-danger small">
+									</span>
+								</div>
+
+								<div class="col-md-6">
+									<label asp-for="RequesterLastName"
+										   class="form-label">
+
+										Soyad
+									</label>
+
+									<input asp-for="RequesterLastName"
+										   class="form-control"
+										   placeholder="Soyadınızı girin" />
+
+									<span asp-validation-for="RequesterLastName"
+										  class="text-danger small">
+									</span>
+								</div>
+
+								<div class="col-md-6">
+									<label asp-for="RequesterEmail"
+										   class="form-label">
+
+										E-posta
+									</label>
+
+									<input asp-for="RequesterEmail"
+										   type="email"
+										   class="form-control"
+										   placeholder="ornek@email.com" />
+
+									<span asp-validation-for="RequesterEmail"
+										  class="text-danger small">
+									</span>
+								</div>
+
+								<div class="col-md-6">
+									<label asp-for="RequesterPhoneNumber"
+										   class="form-label">
+
+										Telefon
+									</label>
+
+									<input asp-for="RequesterPhoneNumber"
+										   type="tel"
+										   class="form-control"
+										   placeholder="0555 111 22 33" />
+
+									<span asp-validation-for="RequesterPhoneNumber"
+										  class="text-danger small">
+									</span>
+								</div>
+
+							</div>
+
+							<hr class="my-4" />
+
+							<h2 class="h5 fw-bold mb-4">
+								Talep Bilgileri
+							</h2>
+
+							<div class="mb-3">
+								<label asp-for="Title"
+									   class="form-label">
+
+									Başlık
+								</label>
+
+								<input asp-for="Title"
+									   class="form-control"
+									   placeholder="Talebinizi kısa bir başlıkla özetleyin" />
+
+								<span asp-validation-for="Title"
+									  class="text-danger small">
+								</span>
+							</div>
+
+							<div class="mb-4">
+								<label asp-for="Description"
+									   class="form-label">
+
+									Açıklama
+								</label>
+
+								<textarea asp-for="Description"
+										  class="form-control"
+										  rows="7"
+										  placeholder="Talebinizi ayrıntılı biçimde açıklayın...">
+                                </textarea>
+
+								<span asp-validation-for="Description"
+									  class="text-danger small">
+								</span>
+							</div>
+
+							<button type="submit"
+									class="btn btn-primary btn-lg w-100">
+
+								<i class="bi bi-send me-2"></i>
+								Talebi Gönder
+							</button>
+
+						</form>
+
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+	</div>
+</section>
+
+@section Scripts {
+	<script>
+		function copyRequestNumber() {
+			const requestNumber =
+				document.getElementById("requestNumber").innerText;
+
+			navigator.clipboard.writeText(requestNumber);
+		}
+	</script>
+}

@@ -1,0 +1,251 @@
+﻿@model RequestClassifier.Application.DTOs.ServiceRequests.TrackServiceRequestDto
+
+@using RequestClassifier.Application.DTOs.ServiceRequests
+
+@{
+	ViewData["Title"] = "Talep Sorgula";
+
+	var result =
+		ViewBag.Result as TrackServiceRequestResultDto;
+
+	var notFound =
+		ViewBag.NotFound as bool? == true;
+
+	string GetStatusText(RequestClassifier.Domain.Enums.RequestStatus status)
+	{
+		return status switch
+		{
+			RequestClassifier.Domain.Enums.RequestStatus.Received
+				=> "Talep alındı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Classified
+				=> "Talep sınıflandırıldı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Assigned
+				=> "Talep ilgili birime atandı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.InProgress
+				=> "Talep işleme alındı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Resolved
+				=> "Talep çözüldü.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Closed
+				=> "Talep kapatıldı.",
+
+			RequestClassifier.Domain.Enums.RequestStatus.Rejected
+				=> "Talep reddedildi.",
+
+			_ => status.ToString()
+		};
+	}
+}
+
+<section class="py-5">
+	<div class="container">
+
+		<div class="row justify-content-center">
+			<div class="col-lg-8">
+
+				<div class="text-center mb-4">
+
+					<span class="badge bg-primary-subtle text-primary px-3 py-2 mb-3">
+						Başvuru Takibi
+					</span>
+
+					<h1 class="fw-bold">
+						Talebimi Sorgula
+					</h1>
+
+					<p class="text-secondary">
+						Başvuru numaranız ve e-posta adresinizle
+						talebinizin güncel durumunu görüntüleyin.
+					</p>
+
+				</div>
+
+				<div class="card border-0 shadow-sm rounded-4 mb-4">
+					<div class="card-body p-4 p-lg-5">
+
+						<form asp-controller="Requests"
+							  asp-action="Track"
+							  method="post">
+
+							@Html.AntiForgeryToken()
+
+							<div asp-validation-summary="ModelOnly"
+								 class="alert alert-danger">
+							</div>
+
+							<div class="row g-3">
+
+								<div class="col-md-6">
+
+									<label asp-for="RequestNumber"
+										   class="form-label">
+
+										Başvuru Numarası
+									</label>
+
+									<input asp-for="RequestNumber"
+										   class="form-control"
+										   placeholder="REQ-2026-000001" />
+
+									<span asp-validation-for="RequestNumber"
+										  class="text-danger small">
+									</span>
+
+								</div>
+
+								<div class="col-md-6">
+
+									<label asp-for="RequesterEmail"
+										   class="form-label">
+
+										E-posta
+									</label>
+
+									<input asp-for="RequesterEmail"
+										   type="email"
+										   class="form-control"
+										   placeholder="ornek@email.com" />
+
+									<span asp-validation-for="RequesterEmail"
+										  class="text-danger small">
+									</span>
+
+								</div>
+
+								<div class="col-12">
+
+									<button type="submit"
+											class="btn btn-primary btn-lg w-100">
+
+										<i class="bi bi-search me-2"></i>
+										Talebi Sorgula
+									</button>
+
+								</div>
+
+							</div>
+
+						</form>
+
+					</div>
+				</div>
+
+				@if (notFound)
+				{
+					<div class="alert alert-warning border-0 shadow-sm rounded-4 p-4">
+
+						<div class="d-flex gap-3">
+
+							<i class="bi bi-exclamation-triangle-fill fs-3"></i>
+
+							<div>
+								<h2 class="h5 fw-bold">
+									Talep bulunamadı
+								</h2>
+
+								<p class="mb-0">
+									Başvuru numarasını ve e-posta adresini
+									kontrol ederek tekrar deneyin.
+								</p>
+							</div>
+
+						</div>
+
+					</div>
+				}
+
+				@if (result is not null)
+				{
+					<div class="card border-0 shadow-sm rounded-4">
+
+						<div class="card-header bg-primary text-white border-0 rounded-top-4 p-4">
+
+							<div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+
+								<div>
+									<div class="small opacity-75">
+										Başvuru Numarası
+									</div>
+
+									<h2 class="h5 mb-0 fw-bold">
+										@result.RequestNumber
+									</h2>
+								</div>
+
+								<span class="badge bg-light text-primary fs-6 px-3 py-2">
+									@GetStatusText(result.Status)
+								</span>
+
+							</div>
+
+						</div>
+
+						<div class="card-body p-4 p-lg-5">
+
+							<div class="mb-4">
+
+								<span class="text-secondary small d-block mb-1">
+									Başlık
+								</span>
+
+								<h3 class="h5 fw-bold">
+									@result.Title
+								</h3>
+
+							</div>
+
+							<div class="mb-4">
+
+								<span class="text-secondary small d-block mb-1">
+									Açıklama
+								</span>
+
+								<p class="mb-0">
+									@result.Description
+								</p>
+
+							</div>
+
+							<div class="row g-4">
+
+								<div class="col-md-6">
+
+									<span class="text-secondary small d-block mb-1">
+										Atanan Daire
+									</span>
+
+									<strong>
+										@(result.AssignedDepartmentName
+											?? "Henüz atanmadı")
+									</strong>
+
+								</div>
+
+								<div class="col-md-6">
+
+									<span class="text-secondary small d-block mb-1">
+										Oluşturulma Tarihi
+									</span>
+
+									<strong>
+										@result.CreatedAt.ToLocalTime()
+										.ToString("dd.MM.yyyy HH:mm")
+									</strong>
+
+								</div>
+
+							</div>
+
+						</div>
+					</div>
+				}
+
+			</div>
+		</div>
+
+	</div>
+</section>
