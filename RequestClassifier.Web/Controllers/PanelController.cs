@@ -1,10 +1,24 @@
 ﻿using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Headers;
 
 namespace RequestClassifier.Web.Controllers;
 
 public class PanelController : Controller
 {
+    // Used to create HttpClient instances.
+    private readonly IHttpClientFactory _httpClientFactory;
+
+    // Provides access to configuration values such as API BaseUrl.
+    private readonly IConfiguration _configuration;
+
+    public PanelController(
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration)
+    {
+        _httpClientFactory = httpClientFactory;
+        _configuration = configuration;
+    }
     [HttpGet]
     public IActionResult Index()
     {
@@ -37,6 +51,119 @@ public class PanelController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetRequests()
+    {
+        var loginRedirect = ValidateSession();
+
+        if (loginRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        // Get the JWT token stored during login.
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        // Read the API base address from appsettings.json.
+        var apiBaseUrl =
+            _configuration["ApiSettings:BaseUrl"];
+
+        if (string.IsNullOrWhiteSpace(apiBaseUrl))
+        {
+            return StatusCode(
+                StatusCodes.Status500InternalServerError,
+                new
+                {
+                    message = "API adresi yapılandırılmamış."
+                });
+        }
+
+        // Create a managed HttpClient instance.
+        var client =
+            _httpClientFactory.CreateClient();
+
+        client.BaseAddress =
+            new Uri(apiBaseUrl);
+
+        // Add the JWT token to the Authorization header.
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            /*
+             * Calls the protected API endpoint.
+             *
+             * Replace this route if your actual endpoint
+             * uses a different address.
+             */
+            var response =
+                await client.GetAsync(
+                    "api/ServiceRequests");
+
+            // The API rejected the JWT token.
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            // The authenticated user does not have permission.
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yetkiniz bulunmuyor."
+                    });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Talepler API üzerinden alınamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            /*
+             * Return the API response directly to JavaScript.
+             * The JSON property names are preserved.
+             */
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
     [HttpGet]
     public IActionResult Departments()
     {
