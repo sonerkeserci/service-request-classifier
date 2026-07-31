@@ -8,4 +8,7 @@ public class MachineLearningSettings
 
     // Minimum difference required between the first and second scores.
     public float AutoAssignmentMarginThreshold { get; set; }
+
+    // Minimum score required for classification.
+    public float MinimumClassificationScoreThreshold { get; set; }
 }

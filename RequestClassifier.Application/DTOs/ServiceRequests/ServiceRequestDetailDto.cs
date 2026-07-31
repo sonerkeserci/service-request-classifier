@@ -28,6 +28,8 @@ public class ServiceRequestDetailDto
 
     public float PredictionScoreMargin { get; set; }
 
+    public bool IsLowConfidence { get; set; }
+
     public bool IsAutoAssigned { get; set; }
 
     public DateTime CreatedAt { get; set; }

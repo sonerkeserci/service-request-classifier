@@ -272,6 +272,7 @@ public class ServiceRequestService : IServiceRequestService
 
                 PredictionScore = request.PredictionScore,
                 PredictionScoreMargin = request.PredictionScoreMargin,
+                IsLowConfidence = request.PredictionScore < _machineLearningSettings.MinimumClassificationScoreThreshold,
                 IsAutoAssigned = request.IsAutoAssigned,
                 CreatedAt = request.CreatedAt,
 
@@ -544,7 +545,7 @@ public class ServiceRequestService : IServiceRequestService
     }
 
     // Private helper method to map ServiceRequest entity to ServiceRequestDetailDto to avoid code duplication
-    private static ServiceRequestDetailDto MapToDetailDto(ServiceRequest request)
+    private ServiceRequestDetailDto MapToDetailDto(ServiceRequest request)
     {
         return new ServiceRequestDetailDto
         {
@@ -562,6 +563,7 @@ public class ServiceRequestService : IServiceRequestService
             PredictionScore = request.PredictionScore,
             PredictionScoreMargin = request.PredictionScoreMargin,
             IsAutoAssigned = request.IsAutoAssigned,
+            IsLowConfidence = request.PredictionScore < _machineLearningSettings.MinimumClassificationScoreThreshold,
             CreatedAt = request.CreatedAt,
             PredictedDepartmentId = request.PredictedCategory?.DepartmentId,
             PredictedDepartmentName = request.PredictedCategory?.Department?.Name,
@@ -570,7 +572,7 @@ public class ServiceRequestService : IServiceRequestService
             RequesterFirstName = request.RequesterFirstName,
             RequesterLastName = request.RequesterLastName,
             RequesterEmail = request.RequesterEmail,
-            RequesterPhoneNumber= request.RequesterPhoneNumber,
+            RequesterPhoneNumber = request.RequesterPhoneNumber,
         };
     }
 }
