@@ -462,6 +462,7 @@ public class ServiceRequestService : IServiceRequestService
         // This provides the real CategoryId values needed by the frontend.
         var categories = await _context.RequestCategories
             .AsNoTracking()
+            .Include(category => category.Department) // Load the department for each category.
             .Where(category =>
                 category.IsActive && // Ignore inactive categories.
                 candidateNames.Contains(category.Name)) // Keep names found in the Top 5 list.
@@ -483,6 +484,8 @@ public class ServiceRequestService : IServiceRequestService
 
                     // Take the category name from the ML result.
                     CategoryName = candidate.CategoryName,
+                    DepartmentId = category?.DepartmentId ?? 0,
+                    DepartmentName = category?.Department?.Name ?? "Birim bulunamadı",
 
                     // Take the score from the ML result.
                     Score = candidate.Score

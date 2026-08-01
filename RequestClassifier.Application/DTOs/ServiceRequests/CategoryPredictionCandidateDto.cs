@@ -9,6 +9,8 @@ public class CategoryPredictionCandidateDto
 
     // Contains the display name of the suggested category.
     public string CategoryName { get; set; } = string.Empty;
+    public int DepartmentId { get; set; }
+    public string DepartmentName { get; set; } = string.Empty;
 
     // Contains the score produced by the ML model for this category.
     public float Score { get; set; }
