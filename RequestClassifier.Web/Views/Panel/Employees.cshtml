@@ -1,0 +1,284 @@
+@{
+    ViewData["Title"] = "Personeller";
+    Layout = "_PanelLayout";
+}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            Personeller
+        </h2>
+
+        <p class="text-muted mb-0">
+            Sistem yöneticilerini ve birim personellerini yönetin.
+        </p>
+    </div>
+
+    <button type="button"
+            class="btn btn-primary"
+            onclick="openCreateEmployeeModal()">
+
+        <i class="bi bi-person-plus me-2"></i>
+        Yeni Personel
+    </button>
+</div>
+
+<div id="employeePageMessage"
+     class="alert d-none">
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-lg-5 col-md-12">
+                <input id="employeeSearch"
+                       type="text"
+                       class="form-control"
+                       placeholder="Ad, soyad, e-posta, rol veya departman ara..." />
+            </div>
+
+            <div class="col-lg-3 col-md-5">
+                <select id="employeeDepartmentFilter"
+                        class="form-select">
+                    <option value="">
+                        Tüm departmanlar
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-4">
+                <select id="employeeRoleFilter"
+                        class="form-select">
+                    <option value="">
+                        Tüm roller
+                    </option>
+
+                    <option value="Admin">
+                        Sistem Yöneticisi
+                    </option>
+
+                    <option value="Employee">
+                        Birim Personeli
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-lg-2 col-md-3">
+                <button type="button"
+                        class="btn btn-outline-secondary w-100"
+                        onclick="clearEmployeeFilters()">
+                    Temizle
+                </button>
+            </div>
+        </div>
+
+        <div id="employeeLoadingArea"
+             class="text-center py-5">
+            <div class="spinner-border text-primary"
+                 role="status">
+                <span class="visually-hidden">
+                    Yükleniyor...
+                </span>
+            </div>
+
+            <p class="text-muted mt-3 mb-0">
+                Personeller yükleniyor...
+            </p>
+        </div>
+
+        <div id="employeeEmptyArea"
+             class="alert alert-info d-none mb-0">
+            Görüntülenecek personel bulunamadı.
+        </div>
+
+        <div id="employeeTableArea"
+             class="table-responsive d-none">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Personel</th>
+                        <th>Rol</th>
+                        <th>Departman</th>
+                        <th>Durum</th>
+                        <th class="text-end"
+                            width="160">
+                            İşlem
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody id="employeeTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade"
+     id="employeeModal"
+     tabindex="-1"
+     aria-labelledby="employeeModalTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"
+                    id="employeeModalTitle">
+                    Yeni Personel
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Kapat">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden"
+                       id="employeeId" />
+
+                <div id="employeeModalMessage"
+                     class="alert d-none">
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="employeeFirstName"
+                               class="form-label">
+                            Ad
+                        </label>
+
+                        <input id="employeeFirstName"
+                               type="text"
+                               class="form-control"
+                               maxlength="100"
+                               autocomplete="given-name"
+                               placeholder="Personelin adı" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="employeeLastName"
+                               class="form-label">
+                            Soyad
+                        </label>
+
+                        <input id="employeeLastName"
+                               type="text"
+                               class="form-control"
+                               maxlength="100"
+                               autocomplete="family-name"
+                               placeholder="Personelin soyadı" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label for="employeeEmail"
+                               class="form-label">
+                            E-posta
+                        </label>
+
+                        <input id="employeeEmail"
+                               type="email"
+                               class="form-control"
+                               autocomplete="email"
+                               placeholder="personel@belediye.gov.tr" />
+                    </div>
+
+                    <div id="employeePasswordArea"
+                         class="col-md-12">
+                        <label for="employeePassword"
+                               class="form-label">
+                            Geçici Şifre
+                        </label>
+
+                        <div class="input-group">
+                            <input id="employeePassword"
+                                   type="password"
+                                   class="form-control"
+                                   autocomplete="new-password"
+                                   placeholder="En az 6 karakterlik geçici şifre" />
+
+                            <button type="button"
+                                    id="toggleEmployeePasswordButton"
+                                    class="btn btn-outline-secondary"
+                                    onclick="toggleEmployeePasswordVisibility()">
+                                Göster
+                            </button>
+                        </div>
+
+                        <div class="form-text">
+                            Bu alan yalnızca yeni personel oluşturulurken kullanılır.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="employeeRole"
+                               class="form-label">
+                            Rol
+                        </label>
+
+                        <select id="employeeRole"
+                                class="form-select"
+                                onchange="handleEmployeeRoleChange()">
+                            <option value="">
+                                Rol seçin
+                            </option>
+
+                            <option value="Admin">
+                                Sistem Yöneticisi
+                            </option>
+
+                            <option value="Employee">
+                                Birim Personeli
+                            </option>
+                        </select>
+
+                        <div id="employeeRoleHelp"
+                             class="form-text">
+                            Sistem yöneticisi tüm yönetim ekranlarına erişebilir.
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="employeeDepartmentId"
+                               class="form-label">
+                            Bağlı Departman
+                        </label>
+
+                        <select id="employeeDepartmentId"
+                                class="form-select">
+                            <option value="">
+                                Departman seçin
+                            </option>
+                        </select>
+
+                        <div id="employeeDepartmentHelp"
+                             class="form-text">
+                            Birim personeli için departman seçimi zorunludur.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Vazgeç
+                </button>
+
+                <button type="button"
+                        id="saveEmployeeButton"
+                        class="btn btn-primary"
+                        onclick="saveEmployee()">
+                    Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/panel/employees.js"></script>
+}
