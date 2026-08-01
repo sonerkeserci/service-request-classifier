@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RequestClassifier.Application.DTOs.Departments;
+using RequestClassifier.Application.DTOs.RequestCategories;
 using RequestClassifier.Application.DTOs.ServiceRequests;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
-using RequestClassifier.Application.DTOs.Departments;
 
 namespace RequestClassifier.Web.Controllers;
 
@@ -877,6 +878,7 @@ public class PanelController : Controller
         return NoContent();
     }
 
+
     [HttpGet]
     public IActionResult Categories()
     {
@@ -888,6 +890,344 @@ public class PanelController : Controller
         }
 
         return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetCategories()
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.GetAsync(
+                    "api/RequestCategories");
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Kategoriler API üzerinden alınamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateCategory(
+        [FromBody] CreateRequestCategoryDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Kategori bilgileri gönderilmedi."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Name) ||
+            string.IsNullOrWhiteSpace(dto.Code) ||
+            dto.DepartmentId <= 0)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Kategori adı, kodu ve departman zorunludur."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.PostAsJsonAsync(
+                    "api/RequestCategories",
+                    dto);
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.BadRequest)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return BadRequest(new
+                {
+                    message =
+                        "Kategori oluşturulamadı.",
+
+                    detail = apiError
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Kategori API üzerinden oluşturulamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateCategory(
+        int id,
+        [FromBody] UpdateRequestCategoryDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Geçerli bir kategori ID değeri gönderilmedi."
+            });
+        }
+
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Kategori bilgileri gönderilmedi."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Name) ||
+            string.IsNullOrWhiteSpace(dto.Code) ||
+            dto.DepartmentId <= 0)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Kategori adı, kodu ve departman zorunludur."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.PutAsJsonAsync(
+                    $"api/RequestCategories/{id}",
+                    dto);
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Kategori bulunamadı."
+                });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.BadRequest)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return BadRequest(new
+                {
+                    message =
+                        "Kategori güncellenemedi.",
+
+                    detail = apiError
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Kategori API üzerinden güncellenemedi.",
+
+                        detail = apiError
+                    });
+            }
+
+            return NoContent();
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
     }
 
     [HttpGet]

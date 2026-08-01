@@ -1,0 +1,200 @@
+@{
+    ViewData["Title"] = "Kategoriler";
+    Layout = "_PanelLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            Kategoriler
+        </h2>
+
+        <p class="text-muted mb-0">
+            Talep kategorilerini ve bağlı oldukları departmanları yönetin.
+        </p>
+    </div>
+
+    <button type="button"
+            class="btn btn-primary"
+            onclick="openCreateCategoryModal()">
+
+        <i class="bi bi-plus-lg me-2"></i>
+        Yeni Kategori
+    </button>
+</div>
+
+<div id="categoryPageMessage"
+     class="alert d-none">
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6">
+                <input id="categorySearch"
+                       type="text"
+                       class="form-control"
+                       placeholder="Kategori, kod, açıklama veya departman ara..." />
+            </div>
+
+            <div class="col-md-4">
+                <select id="categoryDepartmentFilter"
+                        class="form-select">
+                    <option value="">
+                        Tüm departmanlar
+                    </option>
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <button type="button"
+                        class="btn btn-outline-secondary w-100"
+                        onclick="clearCategoryFilters()">
+                    Temizle
+                </button>
+            </div>
+        </div>
+
+        <div id="categoryLoadingArea"
+             class="text-center py-5">
+            <div class="spinner-border text-primary"
+                 role="status">
+                <span class="visually-hidden">
+                    Yükleniyor...
+                </span>
+            </div>
+
+            <p class="text-muted mt-3 mb-0">
+                Kategoriler yükleniyor...
+            </p>
+        </div>
+
+        <div id="categoryEmptyArea"
+             class="alert alert-info d-none mb-0">
+            Görüntülenecek kategori bulunamadı.
+        </div>
+
+        <div id="categoryTableArea"
+             class="table-responsive d-none">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th>Departman</th>
+                        <th>Durum</th>
+                        <th class="text-end" width="160">
+                            İşlem
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody id="categoryTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Shared modal used for both category creation and category update. -->
+<div class="modal fade"
+     id="categoryModal"
+     tabindex="-1"
+     aria-labelledby="categoryModalTitle"
+     aria-hidden="true">
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"
+                    id="categoryModalTitle">
+                    Yeni Kategori
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Kapat">
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Empty value means create; a numeric value means update. -->
+                <input type="hidden"
+                       id="categoryId" />
+
+                <div id="categoryModalMessage"
+                     class="alert d-none">
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoryName"
+                           class="form-label">
+                        Kategori Adı
+                    </label>
+
+                    <input id="categoryName"
+                           type="text"
+                           class="form-control"
+                           placeholder="Örn: Yol, Asfalt ve Kaldırım" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoryCode"
+                           class="form-label">
+                        Kategori Kodu
+                    </label>
+
+                    <input id="categoryCode"
+                           type="text"
+                           class="form-control"
+                           placeholder="Örn: YAK" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoryDepartmentId"
+                           class="form-label">
+                        Bağlı Departman
+                    </label>
+
+                    <select id="categoryDepartmentId"
+                            class="form-select">
+                        <option value="">
+                            Departman seçin
+                        </option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="categoryDescription"
+                           class="form-label">
+                        Açıklama
+                    </label>
+
+                    <textarea id="categoryDescription"
+                              class="form-control"
+                              rows="3"
+                              placeholder="Kategori kapsamını ve örnek talepleri yazın."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Vazgeç
+                </button>
+
+                <button type="button"
+                        id="saveCategoryButton"
+                        class="btn btn-primary"
+                        onclick="saveCategory()">
+                    Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/panel/categories.js"></script>
+}
