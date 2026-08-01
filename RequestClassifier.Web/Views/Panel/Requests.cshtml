@@ -280,12 +280,92 @@
 					-
 				</span>
 			</div>
+
+			<hr class="my-4">
+
+			<!-- Allows Admin and Employee users to update the request status. -->
+			<div>
+				<h6 class="fw-bold mb-3">
+					Durum Güncelle
+				</h6>
+
+				<!-- Displays success or error messages after status update. -->
+				<div id="statusUpdateMessage"
+					 class="alert d-none">
+				</div>
+
+				<div class="mb-3">
+					<label for="newStatusSelect"
+						   class="form-label">
+						Yeni durum
+					</label>
+
+					<select id="newStatusSelect"
+							class="form-select">
+
+						<option value="">
+							Durum seçin
+						</option>
+
+						<option value="1">
+							Alındı
+						</option>
+
+						<option value="2">
+							Sınıflandırıldı
+						</option>
+
+						<option value="3">
+							Birime Atandı
+						</option>
+
+						<option value="4">
+							İşleme Alındı
+						</option>
+
+						<option value="5">
+							Çözüldü
+						</option>
+
+						<option value="6">
+							Kapatıldı
+						</option>
+
+						<option value="7">
+							Reddedildi
+						</option>
+					</select>
+				</div>
+
+				<div class="mb-3">
+					<label for="statusDescription"
+						   class="form-label">
+						Açıklama
+					</label>
+
+					<textarea id="statusDescription"
+							  class="form-control"
+							  rows="3"
+							  placeholder="Durum değişikliği hakkında açıklama girin..."></textarea>
+				</div>
+
+				<button type="button"
+						id="updateStatusButton"
+						class="btn btn-primary w-100"
+						onclick="updateRequestStatus()">
+
+					Durumu Güncelle
+				</button>
+			</div>
 		</div>
 	</div>
 </div>
 
 @section Scripts {
 	<script>
+
+		// Stores the ID of the request currently opened in the offcanvas.
+		let selectedRequestId = null;
 		/*
 		 * Runs after the HTML document is fully loaded.
 		 * Automatically loads the request list when the page opens.
@@ -481,6 +561,10 @@
 		* service request details from PanelController.
 		*/
 		async function openRequestDetail(requestId) {
+
+			// Remember which request is currently opened.
+			selectedRequestId = requestId;
+
 			const offcanvasElement =
 				document.getElementById("requestDetailOffcanvas");
 
@@ -745,6 +829,139 @@
 			return Number(value).toFixed(3);
 		}
 
+		/*
+		* Sends the selected status and description
+		* to PanelController for the currently opened request.
+		*/
+		async function updateRequestStatus() {
+			const statusSelect =
+				document.getElementById("newStatusSelect");
+
+			const descriptionInput =
+				document.getElementById("statusDescription");
+
+			const messageArea =
+				document.getElementById("statusUpdateMessage");
+
+			const updateButton =
+				document.getElementById("updateStatusButton");
+
+			const newStatus =
+				Number(statusSelect.value);
+
+			if (!selectedRequestId) {
+				showStatusMessage(
+					"danger",
+					"Güncellenecek talep seçilemedi."
+				);
+
+				return;
+			}
+
+			if (!newStatus) {
+				showStatusMessage(
+					"warning",
+					"Lütfen yeni bir durum seçin."
+				);
+
+				return;
+			}
+
+			updateButton.disabled = true;
+			messageArea.classList.add("d-none");
+
+			try {
+				const response = await fetch(
+					`/Panel/UpdateRequestStatus?id=${selectedRequestId}`,
+					{
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							newStatus: newStatus,
+							description:
+								descriptionInput.value.trim()
+						})
+					}
+				);
+
+				if (response.status === 401) {
+					window.location.href = "/Account/Login";
+					return;
+				}
+
+				if (response.status === 404) {
+					throw new Error(
+						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+					);
+				}
+
+				if (!response.ok) {
+					throw new Error(
+						"Durum güncellenirken bir hata oluştu."
+					);
+				}
+
+				showStatusMessage(
+					"success",
+					"Talep durumu başarıyla güncellendi."
+				);
+
+				statusSelect.value = "";
+				descriptionInput.value = "";
+
+				// Refresh both the table and the currently opened detail.
+				await loadRequests();
+				await reloadSelectedRequestDetail();
+			}
+			catch (error) {
+				showStatusMessage(
+					"danger",
+					error.message ??
+					"Beklenmeyen bir hata oluştu."
+				);
+			}
+			finally {
+				updateButton.disabled = false;
+			}
+		}
+
+		/*
+		 * Displays a Bootstrap alert inside the status update area.
+		 */
+		function showStatusMessage(type, message) {
+			const messageArea =
+				document.getElementById("statusUpdateMessage");
+
+			messageArea.className =
+				`alert alert-${type}`;
+
+			messageArea.textContent = message;
+		}
+
+		/*
+		 * Reloads the currently opened request after an update.
+		 */
+		async function reloadSelectedRequestDetail() {
+			if (!selectedRequestId) {
+				return;
+			}
+
+			const response = await fetch(
+				`/Panel/GetRequestDetail?id=${selectedRequestId}`
+			);
+
+			if (!response.ok) {
+				return;
+			}
+
+			const request =
+				await response.json();
+
+			fillRequestDetail(request);
+		}
+
 		function getRequesterName(request) {
 			const firstName = request.requesterFirstName ?? "";
 			const lastName = request.requesterLastName ?? "";
@@ -794,57 +1011,58 @@
 		 * into a readable Bootstrap badge.
 		 *
 		 * Backend enum:
-		 *
-		 * 0 = Received
-		 * 1 = Classified
-		 * 2 = Assigned
-		 * 3 = InProgress
-		 * 4 = Completed
-		 * 5 = Rejected
+		 * 1: Received
+		 * 2: Classified
+		 * 3: Assigned
+		 * 4: InProgress
+		 * 5: Resolved
+		 * 6: Closed
+		 * 7: Rejected
 		 */
 		function getStatusBadge(status) {
 			const statusMap = {
-				0: {
+				1: {
 					text: "Alındı",
 					cssClass: "text-bg-secondary"
 				},
-				1: {
+				2: {
 					text: "Sınıflandırıldı",
 					cssClass: "text-bg-info"
 				},
-				2: {
+				3: {
 					text: "Birime Atandı",
 					cssClass: "text-bg-primary"
 				},
-				3: {
-					text: "İşlemde",
+				4: {
+					text: "İşleme Alındı",
 					cssClass: "text-bg-warning"
 				},
-				4: {
-					text: "Tamamlandı",
+				5: {
+					text: "Çözüldü",
 					cssClass: "text-bg-success"
 				},
-				5: {
+				6: {
+					text: "Kapatıldı",
+					cssClass: "text-bg-dark"
+				},
+				7: {
 					text: "Reddedildi",
 					cssClass: "text-bg-danger"
 				}
 			};
 
-			/*
-			* Use a default value when the backend sends
-			* an unknown status code.
-			*/
 			const statusInfo = statusMap[status] ?? {
 				text: "Bilinmiyor",
 				cssClass: "text-bg-dark"
 			};
 
 			return `
-								<span class="badge ${statusInfo.cssClass}">
-									${statusInfo.text}
-								</span>
-							`;
+				<span class="badge ${statusInfo.cssClass}">
+					${statusInfo.text}
+				</span>
+			`;
 		}
+		
 
 		/*
 		* Converts the API date value into a Turkish
