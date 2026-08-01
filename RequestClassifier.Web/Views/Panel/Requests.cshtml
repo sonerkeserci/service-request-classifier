@@ -156,30 +156,64 @@
 					</div>
 				</div>
 
-				<div class="col-6">
-					<small class="text-muted d-block">
-						Tahmin edilen kategori
-					</small>
+				<!-- The predicted department is the primary routing information.
+     The predicted category is displayed as secondary information. -->
+				<div class="col-12">
+					<div class="p-3 rounded-3 bg-light border">
+						<small class="text-muted d-block">
+							Tahmin edilen birim
+						</small>
 
-					<strong id="detailPredictedCategory">
-						-
-					</strong>
+						<strong id="detailPredictedDepartment"
+								class="d-block fs-5 mt-1">
+							-
+						</strong>
+
+						<small class="text-muted d-block mt-2">
+							Kategori
+						</small>
+
+						<span id="detailPredictedCategory">
+							-
+						</span>
+					</div>
+				</div>
+
+				<!-- The assigned department is the actual destination of the request.
+     The assigned category is displayed as secondary information. -->
+				<div class="col-12">
+					<div class="p-3 rounded-3 border">
+						<small class="text-muted d-block">
+							Atanan birim
+						</small>
+
+						<strong id="detailAssignedDepartment"
+								class="d-block fs-5 mt-1">
+							Henüz atanmadı
+						</strong>
+
+						<small class="text-muted d-block mt-2">
+							Kategori
+						</small>
+
+						<span id="detailAssignedCategory">
+							-
+						</span>
+					</div>
 				</div>
 
 				<div class="col-6">
-					<small class="text-muted d-block">
-						Atanan kategori
-					</small>
+					<div class="d-flex align-items-center gap-1">
+						<small class="text-muted">
+							Tahmin skoru
+						</small>
 
-					<strong id="detailAssignedCategory">
-						-
-					</strong>
-				</div>
-
-				<div class="col-6">
-					<small class="text-muted d-block">
-						Tahmin skoru
-					</small>
+						<i class="bi bi-question-circle text-secondary"
+						   data-bs-toggle="tooltip"
+						   data-bs-placement="top"
+						   title="Modelin oluşturduğu kategori tahmin vektöründeki en yüksek değerli elemanın skorudur. Tahmin skoru 0.45'ten ve tahmin güven farkı 0.20'den büyükse ilgili birime otomatik atama gerçekleşir.">
+						</i>
+					</div>
 
 					<div id="detailPredictionScore">
 						-
@@ -187,9 +221,17 @@
 				</div>
 
 				<div class="col-6">
-					<small class="text-muted d-block">
-						Skor farkı
-					</small>
+					<div class="d-flex align-items-center gap-1">
+						<small class="text-muted">
+							Tahmin güven farkı
+						</small>
+
+						<i class="bi bi-question-circle text-secondary"
+						   data-bs-toggle="tooltip"
+						   data-bs-placement="top"
+						   title="Tahmin güven farkı, en yüksek iki kategori tahmini arasındaki farktır. Tahmin güven farkı 0.20'den ve tahmin skoru 0.45'ten büyükse ilgili birime otomatik atama gerçekleşir.">
+						</i>
+					</div>
 
 					<strong id="detailPredictionMargin">
 						-
@@ -250,6 +292,12 @@
 		 */
 		document.addEventListener("DOMContentLoaded", function() {
 			loadRequests();
+
+			document
+				.querySelectorAll('[data-bs-toggle="tooltip"]')
+				.forEach(element => {
+					new bootstrap.Tooltip(element);
+				});
 		});
 
 		/*
@@ -429,11 +477,10 @@
 		}
 
 		/*
-		 * Opens the detail area for a selected request.
-		 * In the next step, this function will request the full
-		 * service request detail from PanelController.
+		* Opens the offcanvas panel and loads the selected
+		* service request details from PanelController.
 		*/
-		function openRequestDetail(requestId) {
+		async function openRequestDetail(requestId) {
 			const offcanvasElement =
 				document.getElementById("requestDetailOffcanvas");
 
@@ -442,9 +489,260 @@
 					offcanvasElement
 				);
 
-			console.log("Selected request ID:", requestId);
+			const loadingArea =
+				document.getElementById("detailLoadingArea");
 
+			const errorArea =
+				document.getElementById("detailErrorArea");
+
+			const contentArea =
+				document.getElementById("detailContentArea");
+
+			// Open the panel immediately so the user sees
+			// the loading state without waiting for the API.
 			detailOffcanvas.show();
+
+			loadingArea.classList.remove("d-none");
+			errorArea.classList.add("d-none");
+			contentArea.classList.add("d-none");
+
+			clearRequestDetail();
+
+			try {
+				const response = await fetch(
+					`/Panel/GetRequestDetail?id=${requestId}`
+				);
+
+				if (response.status === 401) {
+					window.location.href = "/Account/Login";
+					return;
+				}
+
+				if (response.status === 403) {
+					throw new Error(
+						"Bu talebi görüntüleme yetkiniz bulunmuyor."
+					);
+				}
+
+				if (response.status === 404) {
+					throw new Error(
+						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+					);
+				}
+
+				if (!response.ok) {
+					throw new Error(
+						"Talep detayı alınırken bir hata oluştu."
+					);
+				}
+
+				const request = await response.json();
+
+				fillRequestDetail(request);
+
+				contentArea.classList.remove("d-none");
+			}
+			catch (error) {
+				errorArea.textContent =
+					error.message ??
+					"Beklenmeyen bir hata oluştu.";
+
+				errorArea.classList.remove("d-none");
+			}
+			finally {
+				loadingArea.classList.add("d-none");
+			}
+		}
+
+		/*
+		* Clears values left from the previously opened request.
+		*/
+		function clearRequestDetail() {
+			document.getElementById(
+				"detailRequestNumber"
+			).textContent = "";
+
+			document.getElementById(
+				"detailTitle"
+			).textContent = "";
+
+			document.getElementById(
+				"detailDescription"
+			).textContent = "";
+
+			document.getElementById(
+				"detailRequester"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailStatus"
+			).innerHTML = "-";
+
+			document.getElementById(
+				"detailPredictedDepartment"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailAssignedDepartment"
+			).textContent = "Henüz atanmadı";
+
+			document.getElementById(
+				"detailPredictedCategory"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailAssignedCategory"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailPredictionScore"
+			).innerHTML = "-";
+
+			document.getElementById(
+				"detailPredictionMargin"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailAutoAssignment"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailCreatedAt"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailEmail"
+			).textContent = "-";
+
+			document.getElementById(
+				"detailPhone"
+			).textContent = "-";
+
+			document.getElementById(
+				"lowConfidenceWarning"
+			).classList.add("d-none");
+		}
+
+		/*
+		 * Writes the API response into the offcanvas elements.
+		 */
+		function fillRequestDetail(request) {
+			document.getElementById(
+				"detailRequestNumber"
+			).textContent =
+				request.requestNumber ?? "-";
+
+			document.getElementById(
+				"detailTitle"
+			).textContent =
+				request.title ?? "-";
+
+			document.getElementById(
+				"detailDescription"
+			).textContent =
+				request.description ?? "-";
+
+			const requesterName = [
+				request.requesterFirstName,
+				request.requesterLastName
+			]
+				.filter(Boolean)
+				.join(" ");
+
+			document.getElementById(
+				"detailRequester"
+			).textContent =
+				requesterName || "-";
+
+			document.getElementById(
+				"detailStatus"
+			).innerHTML =
+				getStatusBadge(request.status);
+
+			document.getElementById(
+				"detailPredictedDepartment"
+			).textContent =
+				request.predictedDepartmentName ?? "-";
+
+			document.getElementById(
+				"detailAssignedDepartment"
+			).textContent =
+				request.assignedDepartmentName ?? "Henüz atanmadı";
+			document.getElementById(
+				"detailPredictedCategory"
+			).textContent =
+				request.predictedCategoryName ?? "-";
+
+			document.getElementById(
+				"detailAssignedCategory"
+			).textContent =
+				request.assignedCategoryName ?? "Henüz atanmadı";
+
+			document.getElementById(
+				"detailPredictionScore"
+			).innerHTML =
+				getPredictionScore(request);
+
+			document.getElementById(
+				"detailPredictionMargin"
+			).textContent =
+				formatScoreMargin(
+					request.predictionScoreMargin
+				);
+
+			document.getElementById(
+				"detailAutoAssignment"
+			).textContent =
+				request.isAutoAssigned
+					? "Evet"
+					: "Hayır";
+
+			document.getElementById(
+				"detailCreatedAt"
+			).textContent =
+				formatDate(request.createdAt);
+
+			document.getElementById(
+				"detailEmail"
+			).textContent =
+				request.requesterEmail ?? "-";
+
+			document.getElementById(
+				"detailPhone"
+			).textContent =
+				request.requesterPhoneNumber ?? "-";
+
+			const lowConfidenceWarning =
+				document.getElementById(
+					"lowConfidenceWarning"
+				);
+
+			if (request.isLowConfidence) {
+				lowConfidenceWarning.classList.remove(
+					"d-none"
+				);
+			}
+			else {
+				lowConfidenceWarning.classList.add(
+					"d-none"
+				);
+			}
+		}
+
+		/*
+		 * Formats the prediction score margin to three decimal places.
+		 *
+		 * If the value is null or undefined, returns a dash ("-").
+		 */
+		function formatScoreMargin(value) {
+			if (
+				value === null ||
+				value === undefined
+			) {
+				return "-";
+			}
+
+			return Number(value).toFixed(3);
 		}
 
 		function getRequesterName(request) {
@@ -515,7 +813,7 @@
 					cssClass: "text-bg-info"
 				},
 				2: {
-					text: "Atandı",
+					text: "Birime Atandı",
 					cssClass: "text-bg-primary"
 				},
 				3: {
