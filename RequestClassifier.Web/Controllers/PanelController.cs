@@ -3,6 +3,7 @@ using RequestClassifier.Application.DTOs.ServiceRequests;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
+using RequestClassifier.Application.DTOs.Departments;
 
 namespace RequestClassifier.Web.Controllers;
 
@@ -732,6 +733,148 @@ public class PanelController : Controller
         return Content(
             json,
             "application/json");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateDepartment(
+    [FromBody] CreateDepartmentDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Name) ||
+            string.IsNullOrWhiteSpace(dto.Code))
+        {
+            return BadRequest(new
+            {
+                message = "Departman adı ve kodu zorunludur."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response = await client.PostAsJsonAsync(
+            "api/Departments",
+            dto);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            HttpContext.Session.Clear();
+            return Unauthorized();
+        }
+
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var detail =
+                await response.Content.ReadAsStringAsync();
+
+            return StatusCode(
+                (int)response.StatusCode,
+                new
+                {
+                    message = "Departman oluşturulamadı.",
+                    detail
+                });
+        }
+
+        var json =
+            await response.Content.ReadAsStringAsync();
+
+        return Content(
+            json,
+            "application/json");
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateDepartment(
+        int id,
+        [FromBody] UpdateDepartmentDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir departman ID değeri gönderilmedi."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.Name) ||
+            string.IsNullOrWhiteSpace(dto.Code))
+        {
+            return BadRequest(new
+            {
+                message = "Departman adı ve kodu zorunludur."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response = await client.PutAsJsonAsync(
+            $"api/Departments/{id}",
+            dto);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            HttpContext.Session.Clear();
+            return Unauthorized();
+        }
+
+        if (response.StatusCode == HttpStatusCode.Forbidden)
+        {
+            return Forbid();
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var detail =
+                await response.Content.ReadAsStringAsync();
+
+            return StatusCode(
+                (int)response.StatusCode,
+                new
+                {
+                    message = "Departman güncellenemedi.",
+                    detail
+                });
+        }
+
+        return NoContent();
     }
 
     [HttpGet]
