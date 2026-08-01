@@ -357,6 +357,60 @@
 					Durumu Güncelle
 				</button>
 			</div>
+
+			<hr class="my-4">
+
+			<!-- Status history remains collapsed until the user opens it. -->
+			<div>
+				<button type="button"
+						id="historyToggleButton"
+						class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+						data-bs-toggle="collapse"
+						data-bs-target="#requestHistoryCollapse"
+						aria-expanded="false"
+						aria-controls="requestHistoryCollapse">
+
+					<span>
+						<i class="bi bi-clock-history me-2"></i>
+						Durum Geçmişini Göster
+					</span>
+
+					<i class="bi bi-chevron-down"></i>
+				</button>
+
+				<div class="collapse mt-3"
+					 id="requestHistoryCollapse">
+
+					<!-- Displayed while history records are loading. -->
+					<div id="historyLoadingArea"
+						 class="text-center py-4 d-none">
+
+						<div class="spinner-border spinner-border-sm text-primary"
+							 role="status">
+						</div>
+
+						<span class="text-muted ms-2">
+							Durum geçmişi yükleniyor...
+						</span>
+					</div>
+
+					<!-- Displays history loading errors. -->
+					<div id="historyErrorArea"
+						 class="alert alert-danger d-none">
+					</div>
+
+					<!-- Displays an empty message when no history exists. -->
+					<div id="historyEmptyArea"
+						 class="alert alert-light border d-none">
+
+						Durum geçmişi bulunamadı.
+					</div>
+
+					<!-- History cards will be generated here. -->
+					<div id="historyList">
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>
@@ -378,6 +432,21 @@
 				.forEach(element => {
 					new bootstrap.Tooltip(element);
 				});
+
+			/*
+			 * Loads history only when the collapse area is opened.
+			 * This prevents an unnecessary request every time
+			 * the detail offcanvas opens.
+			 */
+			const historyCollapse =
+				document.getElementById("requestHistoryCollapse");
+
+			historyCollapse.addEventListener(
+				"show.bs.collapse",
+				function() {
+					loadRequestHistory();
+				}
+			);
 		});
 
 		/*
@@ -489,47 +558,47 @@
 					 * to reduce the risk of HTML injection.
 					 */
 					row.innerHTML = `
-										<td>
-											<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
-										</td>
+												<td>
+													<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
+												</td>
 
-										<td>
-											${escapeHtml(request.title ?? "-")}
-										</td>
+												<td>
+													${escapeHtml(request.title ?? "-")}
+												</td>
 
-										<td>
-											${getRequesterName(request)}
-										</td>
+												<td>
+													${getRequesterName(request)}
+												</td>
 
-										<td>
-											${escapeHtml(request.predictedCategoryName ?? "-")}
-										</td>
+												<td>
+													${escapeHtml(request.predictedCategoryName ?? "-")}
+												</td>
 
-										<td>
-											${escapeHtml(request.assignedCategoryName ?? "-")}
-										</td>
+												<td>
+													${escapeHtml(request.assignedCategoryName ?? "-")}
+												</td>
 
-										<td>
-											${getStatusBadge(request.status)}
-										</td>
+												<td>
+													${getStatusBadge(request.status)}
+												</td>
 
-										<td>
-											${getPredictionScore(request)}
-										</td>
+												<td>
+													${getPredictionScore(request)}
+												</td>
 
-										<td>
-											${formatDate(request.createdAt)}
-										</td>
+												<td>
+													${formatDate(request.createdAt)}
+												</td>
 
-										<td class="text-end">
-											<button
-												type="button"
-												class="btn btn-sm btn-primary"
-												onclick="openRequestDetail(${request.id})">
-												Detay
-											</button>
-										</td>
-									`;
+												<td class="text-end">
+													<button
+														type="button"
+														class="btn btn-sm btn-primary"
+														onclick="openRequestDetail(${request.id})">
+														Detay
+													</button>
+												</td>
+											`;
 
 					tableBody.appendChild(row);	// Add the generated row to the table body.
 				});
@@ -705,6 +774,32 @@
 			document.getElementById(
 				"lowConfidenceWarning"
 			).classList.add("d-none");
+
+			document.getElementById(
+				"historyList"
+			).innerHTML = "";
+
+			document.getElementById(
+				"historyErrorArea"
+			).classList.add("d-none");
+
+			document.getElementById(
+				"historyEmptyArea"
+			).classList.add("d-none");
+
+			const historyCollapseElement =
+				document.getElementById(
+					"requestHistoryCollapse"
+				);
+
+			const historyCollapse =
+				bootstrap.Collapse.getInstance(
+					historyCollapseElement
+				);
+
+			if (historyCollapse) {
+				historyCollapse.hide();
+			}
 		}
 
 		/*
@@ -914,6 +1009,15 @@
 				// Refresh both the table and the currently opened detail.
 				await loadRequests();
 				await reloadSelectedRequestDetail();
+
+				const historyCollapseElement =
+					document.getElementById(
+						"requestHistoryCollapse"
+					);
+
+				if (historyCollapseElement.classList.contains("show")) {
+					await loadRequestHistory();
+				}
 			}
 			catch (error) {
 				showStatusMessage(
@@ -962,6 +1066,166 @@
 			fillRequestDetail(request);
 		}
 
+		/*
+		* Loads status history for the request currently opened
+		* in the offcanvas.
+		*/
+		async function loadRequestHistory() {
+			if (!selectedRequestId) {
+				return;
+			}
+
+			const loadingArea =
+				document.getElementById(
+					"historyLoadingArea"
+				);
+
+			const errorArea =
+				document.getElementById(
+					"historyErrorArea"
+				);
+
+			const emptyArea =
+				document.getElementById(
+					"historyEmptyArea"
+				);
+
+			const historyList =
+				document.getElementById(
+					"historyList"
+				);
+
+			loadingArea.classList.remove("d-none");
+			errorArea.classList.add("d-none");
+			emptyArea.classList.add("d-none");
+			historyList.innerHTML = "";
+
+			try {
+				const response = await fetch(
+					`/Panel/GetRequestHistory?id=${selectedRequestId}`
+				);
+
+				if (response.status === 401) {
+					window.location.href =
+						"/Account/Login";
+
+					return;
+				}
+
+				if (response.status === 403) {
+					throw new Error(
+						"Bu talebin geçmişini görüntüleme yetkiniz bulunmuyor."
+					);
+				}
+
+				if (response.status === 404) {
+					throw new Error(
+						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+					);
+				}
+
+				if (!response.ok) {
+					throw new Error(
+						"Durum geçmişi alınırken bir hata oluştu."
+					);
+				}
+
+				const histories =
+					await response.json();
+
+				if (!histories ||
+					histories.length === 0) {
+
+					emptyArea.classList.remove(
+						"d-none"
+					);
+
+					return;
+				}
+
+				histories.forEach(history => {
+					const item =
+						document.createElement("div");
+
+					item.className =
+						"border rounded-3 p-3 mb-3 bg-light";
+
+					const oldStatusText =
+						history.oldStatus === null ||
+							history.oldStatus === undefined
+							? "Başlangıç"
+							: getStatusText(
+								history.oldStatus
+							);
+
+					const newStatusText =
+						getStatusText(
+							history.newStatus
+						);
+
+					item.innerHTML = `
+								<div class="d-flex
+											justify-content-between
+											align-items-start
+											gap-3">
+
+									<strong>
+										${escapeHtml(oldStatusText)}
+										<i class="bi bi-arrow-right mx-1"></i>
+										${escapeHtml(newStatusText)}
+									</strong>
+
+									<small class="text-muted text-nowrap">
+										${formatDate(history.changedAt)}
+									</small>
+								</div>
+
+								<div class="text-secondary mt-2">
+									${escapeHtml(
+						history.description ||
+						"Açıklama girilmedi."
+					)}
+								</div>
+							`;
+
+					historyList.appendChild(item);
+				});
+			}
+			catch (error) {
+				errorArea.textContent =
+					error.message ??
+					"Beklenmeyen bir hata oluştu.";
+
+				errorArea.classList.remove(
+					"d-none"
+				);
+			}
+			finally {
+				loadingArea.classList.add(
+					"d-none"
+				);
+			}
+		}
+
+		/*
+		 * Returns only the Turkish status text without
+		 * generating a Bootstrap badge.
+		 */
+		function getStatusText(status) {
+			const statusMap = {
+				1: "Alındı",
+				2: "Sınıflandırıldı",
+				3: "Birime Atandı",
+				4: "İşleme Alındı",
+				5: "Çözüldü",
+				6: "Kapatıldı",
+				7: "Reddedildi"
+			};
+
+			return statusMap[status] ??
+				"Bilinmeyen Durum";
+		}
+
 		function getRequesterName(request) {
 			const firstName = request.requesterFirstName ?? "";
 			const lastName = request.requesterLastName ?? "";
@@ -993,17 +1257,17 @@
 			*/
 			if (request.isLowConfidence) {
 				return `
-									<span class="badge text-bg-warning">
-										${formattedScore}
-									</span>
-								`;
+											<span class="badge text-bg-warning">
+												${formattedScore}
+											</span>
+										`;
 			}
 
 			return `
-								<span class="badge text-bg-success">
-									${formattedScore}
-								</span>
-							`;
+										<span class="badge text-bg-success">
+											${formattedScore}
+										</span>
+									`;
 		}
 
 		/*
@@ -1057,13 +1321,13 @@
 			};
 
 			return `
-				<span class="badge ${statusInfo.cssClass}">
-					${statusInfo.text}
-				</span>
-			`;
+						<span class="badge ${statusInfo.cssClass}">
+							${statusInfo.text}
+						</span>
+					`;
 		}
-		
 
+		
 		/*
 		* Converts the API date value into a Turkish
 		* local date and time string.
