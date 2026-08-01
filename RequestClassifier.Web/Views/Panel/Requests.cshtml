@@ -16,6 +16,82 @@
 	</button>
 </div>
 
+<!-- Filters the request list without calling the API again. -->
+<div class="card border-0 shadow-sm mb-4">
+	<div class="card-body">
+		<div class="row g-3 align-items-end">
+
+			<div class="col-md-4">
+				<label for="requestSearchInput"
+					   class="form-label">
+					Ara
+				</label>
+
+				<input type="text"
+					   id="requestSearchInput"
+					   class="form-control"
+					   placeholder="Talep no, başlık veya vatandaş ara...">
+			</div>
+
+			<div class="col-md-3">
+				<label for="statusFilterSelect"
+					   class="form-label">
+					Durum
+				</label>
+
+				<select id="statusFilterSelect"
+						class="form-select">
+
+					<option value="">
+						Tüm durumlar
+					</option>
+
+					<option value="1">Alındı</option>
+					<option value="2">Sınıflandırıldı</option>
+					<option value="3">Birime Atandı</option>
+					<option value="4">İşleme Alındı</option>
+					<option value="5">Çözüldü</option>
+					<option value="6">Kapatıldı</option>
+					<option value="7">Reddedildi</option>
+				</select>
+			</div>
+
+			<div class="col-md-3">
+				<label for="assignmentFilterSelect"
+					   class="form-label">
+					Atama
+				</label>
+
+				<select id="assignmentFilterSelect"
+						class="form-select">
+
+					<option value="">
+						Tüm talepler
+					</option>
+
+					<option value="unassigned">
+						Atama bekleyenler
+					</option>
+
+					<option value="assigned">
+						Atananlar
+					</option>
+				</select>
+			</div>
+
+			<div class="col-md-2">
+				<button type="button"
+						class="btn btn-outline-secondary w-100"
+						onclick="clearRequestFilters()">
+
+					Temizle
+				</button>
+			</div>
+
+		</div>
+	</div>
+</div>
+
 <!-- This area is displayed while the request list is being loaded from the server. -->
 <div id="loadingArea" class="text-center py-5">
 	<div class="spinner-border text-primary" role="status">
@@ -40,8 +116,8 @@
 						<th>Talep No</th>
 						<th>Başlık</th>
 						<th>Vatandaş</th>
-						<th>Tahmin Edilen Kategori</th>
-						<th>Atanan Kategori</th>
+						<th>Tahmin Edilen Birim</th>
+						<th>Atanan Birim</th>
 						<th>Durum</th>
 						<th>Tahmin Skoru</th>
 						<th>Tarih</th>
@@ -420,12 +496,35 @@
 
 		// Stores the ID of the request currently opened in the offcanvas.
 		let selectedRequestId = null;
+
+		let allRequests = [];
+
 		/*
 		 * Runs after the HTML document is fully loaded.
 		 * Automatically loads the request list when the page opens.
 		 */
 		document.addEventListener("DOMContentLoaded", function() {
 			loadRequests();
+			document
+				.getElementById("requestSearchInput")
+				.addEventListener(
+					"input",
+					applyRequestFilters
+				);
+
+			document
+				.getElementById("statusFilterSelect")
+				.addEventListener(
+					"change",
+					applyRequestFilters
+				);
+
+			document
+				.getElementById("assignmentFilterSelect")
+				.addEventListener(
+					"change",
+					applyRequestFilters
+				);
 
 			document
 				.querySelectorAll('[data-bs-toggle="tooltip"]')
@@ -536,11 +635,13 @@
 				 */
 				const requests = await response.json();
 
+				allRequests = requests ?? [];
+
 				/*
 				 * Show the empty message when the API returns
 				 * null, undefined or an empty array.
 				 */
-				if (!requests || requests.length === 0) {
+				if (allRequests.length === 0) {
 					emptyArea.classList.remove("d-none");
 					return;
 				}
@@ -548,62 +649,7 @@
 				/*
 				 * Creates one table row for each service request.
 				 */
-				requests.forEach(request => {
-					const row = document.createElement("tr"); // Create a new HTML table row.
-
-					/*
-					 * Fill the row using the request data.
-					 *
-					 * escapeHtml is used for user-provided text
-					 * to reduce the risk of HTML injection.
-					 */
-					row.innerHTML = `
-														<td>
-															<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
-														</td>
-
-														<td>
-															${escapeHtml(request.title ?? "-")}
-														</td>
-
-														<td>
-															${getRequesterName(request)}
-														</td>
-
-														<td>
-															${escapeHtml(request.predictedCategoryName ?? "-")}
-														</td>
-
-														<td>
-															${escapeHtml(request.assignedCategoryName ?? "-")}
-														</td>
-
-														<td>
-															${getStatusBadge(request.status)}
-														</td>
-
-														<td>
-															${getPredictionScore(request)}
-														</td>
-
-														<td>
-															${formatDate(request.createdAt)}
-														</td>
-
-														<td class="text-end">
-															<button
-																type="button"
-																class="btn btn-sm btn-primary"
-																onclick="openRequestDetail(${request.id})">
-																Detay
-															</button>
-														</td>
-													`;
-
-					tableBody.appendChild(row);	// Add the generated row to the table body.
-				});
-
-				tableArea.classList.remove("d-none");	// Display the table after all rows are generated.
+				renderRequests(allRequests);
 			}
 			catch (error) {
 				/*
@@ -623,6 +669,182 @@
 				 */
 				loadingArea.classList.add("d-none");
 			}
+		}
+
+		function renderRequests(requests) {
+			const tableBody =
+				document.getElementById("requestTableBody");
+
+			const tableArea =
+				document.getElementById("requestTableArea");
+
+			const emptyArea =
+				document.getElementById("emptyArea");
+
+			tableBody.innerHTML = "";
+
+			if (!requests || requests.length === 0) {
+				tableArea.classList.add("d-none");
+				emptyArea.classList.remove("d-none");
+				return;
+			}
+
+			requests.forEach(request => {
+				const row = document.createElement("tr");
+
+				row.innerHTML = `
+					<td>
+						<strong>
+							${escapeHtml(request.requestNumber ?? "-")}
+						</strong>
+					</td>
+
+					<td>
+						${escapeHtml(request.title ?? "-")}
+					</td>
+
+					<td>
+						${getRequesterName(request)}
+					</td>
+
+					<td>
+						<div class="fw-semibold">
+							${escapeHtml(request.predictedDepartmentName ?? "-")}
+						</div>
+
+						<small class="text-muted">
+							${escapeHtml(request.predictedCategoryName ?? "-")}
+						</small>
+					</td>
+
+					<td>
+						<div class="fw-semibold">
+							${escapeHtml(
+					request.assignedDepartmentName ??
+					"Henüz atanmadı"
+				)}
+						</div>
+
+						<small class="text-muted">
+							${escapeHtml(request.assignedCategoryName ?? "-")}
+						</small>
+					</td>
+
+					<td>
+						${getStatusBadge(request.status)}
+					</td>
+
+					<td>
+						${getPredictionScore(request)}
+					</td>
+
+					<td>
+						${formatDate(request.createdAt)}
+					</td>
+
+					<td class="text-end">
+						<button
+							type="button"
+							class="btn btn-sm btn-primary"
+							onclick="openRequestDetail(${request.id})">
+
+							Detay
+						</button>
+					</td>
+				`;
+
+				tableBody.appendChild(row);
+			});
+
+			emptyArea.classList.add("d-none");
+			tableArea.classList.remove("d-none");
+		}
+
+		function applyRequestFilters() {
+			const searchText =
+				document
+					.getElementById("requestSearchInput")
+					.value
+					.trim()
+					.toLocaleLowerCase("tr-TR");
+
+			const statusValue =
+				document.getElementById(
+					"statusFilterSelect"
+				).value;
+
+			const assignmentValue =
+				document.getElementById(
+					"assignmentFilterSelect"
+				).value;
+
+			const filteredRequests =
+				allRequests.filter(request => {
+					const requesterName =
+						`${request.requesterFirstName ?? ""} ` +
+						`${request.requesterLastName ?? ""}`;
+
+					const searchableText = [
+						request.requestNumber,
+						request.title,
+						request.description,
+						requesterName,
+						request.predictedDepartmentName,
+						request.predictedCategoryName,
+						request.assignedDepartmentName,
+						request.assignedCategoryName
+					]
+						.filter(Boolean)
+						.join(" ")
+						.toLocaleLowerCase("tr-TR");
+
+					const matchesSearch =
+						!searchText ||
+						searchableText.includes(searchText);
+
+					const matchesStatus =
+						!statusValue ||
+						String(request.status) === statusValue;
+
+					const isAssigned =
+						request.assignedCategoryName !== null &&
+						request.assignedCategoryName !== undefined;
+
+					const matchesAssignment =
+						!assignmentValue ||
+						(
+							assignmentValue === "assigned" &&
+							isAssigned
+						) ||
+						(
+							assignmentValue === "unassigned" &&
+							!isAssigned
+						);
+
+					return (
+						matchesSearch &&
+						matchesStatus &&
+						matchesAssignment
+					);
+				});
+
+			renderRequests(filteredRequests);
+		}
+
+		function clearRequestFilters() {
+			document.getElementById(
+				"requestSearchInput"
+			).value = "";
+
+			document.getElementById(
+				"statusFilterSelect"
+			).value = "";
+
+			document.getElementById(
+				"assignmentFilterSelect"
+			).value = "";
+
+			renderRequests(allRequests);
 		}
 
 		/*
@@ -1156,27 +1378,27 @@
 						);
 
 					item.innerHTML = `
-										<div class="d-flex
-													justify-content-between
-													align-items-start
-													gap-3">
+												<div class="d-flex
+															justify-content-between
+															align-items-start
+															gap-3">
 
-													<strong>
-														${escapeHtml(newStatusText)}
-													</strong>
+															<strong>
+																${escapeHtml(newStatusText)}
+															</strong>
 
-											<small class="text-muted text-nowrap">
-												${formatDate(history.changedAt)}
-											</small>
-										</div>
+													<small class="text-muted text-nowrap">
+														${formatDate(history.changedAt)}
+													</small>
+												</div>
 
-										<div class="text-secondary mt-2">
-											${escapeHtml(
+												<div class="text-secondary mt-2">
+													${escapeHtml(
 						history.description ||
 						"Açıklama girilmedi."
 					)}
-										</div>
-									`;
+												</div>
+											`;
 
 					historyList.appendChild(item);
 				});
@@ -1247,17 +1469,17 @@
 			*/
 			if (request.isLowConfidence) {
 				return `
-													<span class="badge text-bg-warning">
-														${formattedScore}
-													</span>
-												`;
+															<span class="badge text-bg-warning">
+																${formattedScore}
+															</span>
+														`;
 			}
 
 			return `
-												<span class="badge text-bg-success">
-													${formattedScore}
-												</span>
-											`;
+														<span class="badge text-bg-success">
+															${formattedScore}
+														</span>
+													`;
 		}
 
 		/*
@@ -1311,10 +1533,10 @@
 			};
 
 			return `
-								<span class="badge ${statusInfo.cssClass}">
-									${statusInfo.text}
-								</span>
-							`;
+										<span class="badge ${statusInfo.cssClass}">
+											${statusInfo.text}
+										</span>
+									`;
 		}
 
 		
