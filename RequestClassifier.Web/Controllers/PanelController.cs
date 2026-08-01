@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using RequestClassifier.Application.DTOs.Auth;
 using RequestClassifier.Application.DTOs.Departments;
 using RequestClassifier.Application.DTOs.RequestCategories;
 using RequestClassifier.Application.DTOs.ServiceRequests;
@@ -1242,6 +1243,362 @@ public class PanelController : Controller
 
         return View();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetEmployees()
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.GetAsync(
+                    "api/Auth/employees");
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Personeller API üzerinden alınamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateEmployee(
+        [FromBody] CreateEmployeeDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Personel bilgileri gönderilmedi."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.FirstName) ||
+            string.IsNullOrWhiteSpace(dto.LastName) ||
+            string.IsNullOrWhiteSpace(dto.Email) ||
+            string.IsNullOrWhiteSpace(dto.Password) ||
+            string.IsNullOrWhiteSpace(dto.Role))
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Ad, soyad, e-posta, şifre ve rol zorunludur."
+            });
+        }
+
+        if (dto.Role.Equals(
+                "Employee",
+                StringComparison.OrdinalIgnoreCase) &&
+            !dto.DepartmentId.HasValue)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Birim personeli için departman seçilmelidir."
+            });
+        }
+
+        if (dto.Role.Equals(
+                "Admin",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            dto.DepartmentId = null;
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.PostAsJsonAsync(
+                    "api/Auth/employees",
+                    dto);
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.BadRequest)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return BadRequest(new
+                {
+                    message =
+                        "Personel oluşturulamadı. E-posta, şifre, rol veya departman bilgilerini kontrol edin.",
+
+                    detail = apiError
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Personel API üzerinden oluşturulamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            return StatusCode(
+                StatusCodes.Status201Created);
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateEmployee(
+        string id,
+        [FromBody] UpdateEmployeeDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Geçerli bir personel ID değeri gönderilmedi."
+            });
+        }
+
+        if (dto is null)
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Personel bilgileri gönderilmedi."
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(dto.FirstName) ||
+            string.IsNullOrWhiteSpace(dto.LastName) ||
+            string.IsNullOrWhiteSpace(dto.Email))
+        {
+            return BadRequest(new
+            {
+                message =
+                    "Ad, soyad ve e-posta zorunludur."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response =
+                await client.PutAsJsonAsync(
+                    $"api/Auth/employees/{Uri.EscapeDataString(id)}",
+                    dto);
+
+            if (response.StatusCode ==
+                HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Personel bulunamadı."
+                });
+            }
+
+            if (response.StatusCode ==
+                HttpStatusCode.BadRequest)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return BadRequest(new
+                {
+                    message =
+                        "Personel güncellenemedi. E-posta veya departman bilgisini kontrol edin.",
+
+                    detail = apiError
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Personel API üzerinden güncellenemedi.",
+
+                        detail = apiError
+                    });
+            }
+
+            return NoContent();
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
 
     private IActionResult? ValidateAdminAccess()
     {
