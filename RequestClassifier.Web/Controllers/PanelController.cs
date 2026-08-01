@@ -164,6 +164,109 @@ public class PanelController : Controller
                 });
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetRequestDetail(int id)
+    {
+        var loginRedirect = ValidateSession();
+
+        if (loginRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir talep ID değeri gönderilmedi."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            // Admin can access every request.
+            // Employee access is filtered by the API according
+            // to the departmentId claim stored in the JWT.
+            var response = await client.GetAsync(
+                $"api/ServiceRequests/{id}");
+
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+                return Unauthorized();
+            }
+
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu talebi görüntüleme yetkiniz bulunmuyor."
+                    });
+            }
+
+            if (response.StatusCode ==
+                System.Net.HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Talep detayı API üzerinden alınamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
     [HttpGet]
     public IActionResult Departments()
     {
