@@ -681,6 +681,7 @@ public class PanelController : Controller
                 });
         }
     }
+    
     [HttpGet]
     public IActionResult Departments()
     {
@@ -692,6 +693,45 @@ public class PanelController : Controller
         }
 
         return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetDepartments()
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        var response =
+            await client.GetAsync(
+                "api/Departments");
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return StatusCode((int)response.StatusCode);
+        }
+
+        var json =
+            await response.Content.ReadAsStringAsync();
+
+        return Content(
+            json,
+            "application/json");
     }
 
     [HttpGet]

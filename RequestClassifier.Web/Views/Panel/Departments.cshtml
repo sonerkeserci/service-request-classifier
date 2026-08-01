@@ -1,0 +1,77 @@
+﻿@{
+    ViewData["Title"] = "Departmanlar";
+    Layout = "_PanelLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <div>
+        <h2 class="fw-bold mb-1">
+            Departmanlar
+        </h2>
+
+        <p class="text-muted mb-0">
+            Belediye departmanlarını yönetin.
+        </p>
+    </div>
+
+    <button class="btn btn-primary"
+            data-bs-toggle="modal"
+            data-bs-target="#departmentModal">
+
+        <i class="bi bi-plus-lg me-2"></i>
+        Yeni Departman
+    </button>
+
+</div>
+
+<div class="card shadow-sm border-0">
+
+    <div class="card-body">
+
+        <div class="row mb-3">
+
+            <div class="col-md-4">
+
+                <input id="departmentSearch"
+                       class="form-control"
+                       placeholder="Departman ara..." />
+
+            </div>
+
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>Departman</th>
+                        <th>Aktif</th>
+                        <th width="180">İşlem</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="departmentTableBody">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+<partial name="_DepartmentModal" />
+
+@section Scripts {
+
+    <script src="~/js/panel/departments.js"></script>
+
+}

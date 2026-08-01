@@ -1,0 +1,78 @@
+﻿<div class="modal fade"
+	 id="departmentModal">
+
+	<div class="modal-dialog">
+
+		<div class="modal-content">
+
+			<div class="modal-header">
+
+				<h5 class="modal-title">
+
+					Departman
+
+				</h5>
+
+				<button class="btn-close"
+						data-bs-dismiss="modal">
+				</button>
+
+			</div>
+
+			<div class="modal-body">
+				<input type="hidden"
+					   id="departmentId"
+					   value="" />
+
+				<label class="form-label">
+					Departman Adı
+				</label>
+				<input id="departmentName"
+					   class="form-control"
+					   placeholder="Örn: Fen İşleri Dairesi" />
+
+				<div class="mb-3">
+					<label class="form-label">
+						Departman Kodu
+					</label>
+
+					<input id="departmentCode"
+						   class="form-control"
+						   placeholder="Örn: BI" />
+				</div>
+
+				<div class="mb-3">
+					<label class="form-label">
+						Açıklama
+					</label>
+					<textarea id="departmentDescription"
+							  class="form-control"
+							  rows="3"
+							  placeholder="Örn: Yol, kaldırım, altyapı, drenaj, sanat yapıları ve kışla mücadele hizmetlerini yürütür."></textarea>
+				</div>
+
+			</div>
+
+			<div class="modal-footer">
+
+				<button class="btn btn-secondary"
+						data-bs-dismiss="modal">
+
+					Vazgeç
+
+				</button>
+
+				<button class="btn btn-primary"
+						onclick="saveDepartment()">
+
+					Kaydet
+
+				</button>
+
+			</div>
+
+		</div>
+
+	</div>
+
+</div>
