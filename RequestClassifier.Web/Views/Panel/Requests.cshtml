@@ -77,10 +77,6 @@
 					<option value="unassigned">
 						Atama bekleyenler
 					</option>
-
-					<option value="assigned">
-						Atananlar
-					</option>
 				</select>
 			</div>
 
@@ -502,6 +498,11 @@
 							Model Tahmin Analizi
 						</h6>
 
+						<p class="text-muted small mb-3">
+							Model 74 kategori üzerinde değerlendirme yaptı.
+							En güçlü 5 tahmin aşağıda listelenmektedir.
+						</p>
+
 						<div id="predictionLoadingArea"
 							 class="text-center py-3 d-none">
 
@@ -858,8 +859,7 @@
 					const matchesStatus =
 						!statusValue ||
 						String(request.status) === statusValue;
-
-					/* This scope  */
+					
 					const isAssigned =
 						request.assignedCategoryId !== null &&
 						request.assignedCategoryId !== undefined;
@@ -870,10 +870,6 @@
 
 					const matchesAssignment =
 						!assignmentValue ||
-						(
-							assignmentValue === "assigned" &&
-							isAssigned
-						) ||
 						(
 							assignmentValue === "unassigned" &&
 							isWaitingForAssignment
@@ -1521,6 +1517,18 @@
 					await response.json();
 
 				predictionCandidates.forEach((candidate, index) => {
+					const isTopCandidate =
+						index === 0;
+
+					const badgeClass =
+						isTopCandidate
+							? "text-bg-success"
+							: "text-bg-primary";
+
+					const progressClass =
+						isTopCandidate
+							? "bg-success"
+							: "bg-primary";
 
 					const percent =
 						(candidate.score * 100)
@@ -1537,10 +1545,8 @@
 										${candidate.departmentName}
 									</strong>
 
-									<span class="badge bg-primary">
-
+									<span class="badge ${badgeClass}">
 										${candidate.score.toFixed(6)}
-
 									</span>
 
 								</div>
@@ -1552,11 +1558,8 @@
 								</div>
 
 								<div class="progress mt-2">
-
-									<div class="progress-bar"
-
-										style="width:${percent}%">
-
+									<div class="progress-bar ${progressClass}"
+											style="width:${percent}%">
 									</div>
 
 								</div>
@@ -1689,18 +1692,17 @@
 			* MinimumClassificationScoreThreshold.
 			*/
 			if (request.isLowConfidence) {
-				return 
-				`	<span class="badge text-bg-warning">
+				return `	
+				<span class="badge text-bg-warning">
 						${formattedScore}
-					</span>
+				</span>
 				`;
 			}
 
-			return 
-				`
-					<span class="badge text-bg-success">
+			return `
+				<span class="badge text-bg-success">
 						${formattedScore}
-					</span>
+				</span>
 				`;
 		}
 
@@ -1755,10 +1757,10 @@
 			};
 
 			return `
-																<span class="badge ${statusInfo.cssClass}">
-																	${statusInfo.text}
-																</span>
-															`;
+					<span class="badge ${statusInfo.cssClass}">
+						${statusInfo.text}
+					</span>
+					`;
 		}
 
 		
