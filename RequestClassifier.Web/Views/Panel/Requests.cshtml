@@ -558,47 +558,47 @@
 					 * to reduce the risk of HTML injection.
 					 */
 					row.innerHTML = `
-												<td>
-													<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
-												</td>
+														<td>
+															<strong>${escapeHtml(request.requestNumber ?? "-")}</strong>
+														</td>
 
-												<td>
-													${escapeHtml(request.title ?? "-")}
-												</td>
+														<td>
+															${escapeHtml(request.title ?? "-")}
+														</td>
 
-												<td>
-													${getRequesterName(request)}
-												</td>
+														<td>
+															${getRequesterName(request)}
+														</td>
 
-												<td>
-													${escapeHtml(request.predictedCategoryName ?? "-")}
-												</td>
+														<td>
+															${escapeHtml(request.predictedCategoryName ?? "-")}
+														</td>
 
-												<td>
-													${escapeHtml(request.assignedCategoryName ?? "-")}
-												</td>
+														<td>
+															${escapeHtml(request.assignedCategoryName ?? "-")}
+														</td>
 
-												<td>
-													${getStatusBadge(request.status)}
-												</td>
+														<td>
+															${getStatusBadge(request.status)}
+														</td>
 
-												<td>
-													${getPredictionScore(request)}
-												</td>
+														<td>
+															${getPredictionScore(request)}
+														</td>
 
-												<td>
-													${formatDate(request.createdAt)}
-												</td>
+														<td>
+															${formatDate(request.createdAt)}
+														</td>
 
-												<td class="text-end">
-													<button
-														type="button"
-														class="btn btn-sm btn-primary"
-														onclick="openRequestDetail(${request.id})">
-														Detay
-													</button>
-												</td>
-											`;
+														<td class="text-end">
+															<button
+																type="button"
+																class="btn btn-sm btn-primary"
+																onclick="openRequestDetail(${request.id})">
+																Detay
+															</button>
+														</td>
+													`;
 
 					tableBody.appendChild(row);	// Add the generated row to the table body.
 				});
@@ -1150,43 +1150,33 @@
 					item.className =
 						"border rounded-3 p-3 mb-3 bg-light";
 
-					const oldStatusText =
-						history.oldStatus === null ||
-							history.oldStatus === undefined
-							? "Başlangıç"
-							: getStatusText(
-								history.oldStatus
-							);
-
 					const newStatusText =
 						getStatusText(
 							history.newStatus
 						);
 
 					item.innerHTML = `
-								<div class="d-flex
-											justify-content-between
-											align-items-start
-											gap-3">
+										<div class="d-flex
+													justify-content-between
+													align-items-start
+													gap-3">
 
-									<strong>
-										${escapeHtml(oldStatusText)}
-										<i class="bi bi-arrow-right mx-1"></i>
-										${escapeHtml(newStatusText)}
-									</strong>
+													<strong>
+														${escapeHtml(newStatusText)}
+													</strong>
 
-									<small class="text-muted text-nowrap">
-										${formatDate(history.changedAt)}
-									</small>
-								</div>
+											<small class="text-muted text-nowrap">
+												${formatDate(history.changedAt)}
+											</small>
+										</div>
 
-								<div class="text-secondary mt-2">
-									${escapeHtml(
+										<div class="text-secondary mt-2">
+											${escapeHtml(
 						history.description ||
 						"Açıklama girilmedi."
 					)}
-								</div>
-							`;
+										</div>
+									`;
 
 					historyList.appendChild(item);
 				});
@@ -1257,17 +1247,17 @@
 			*/
 			if (request.isLowConfidence) {
 				return `
-											<span class="badge text-bg-warning">
-												${formattedScore}
-											</span>
-										`;
+													<span class="badge text-bg-warning">
+														${formattedScore}
+													</span>
+												`;
 			}
 
 			return `
-										<span class="badge text-bg-success">
-											${formattedScore}
-										</span>
-									`;
+												<span class="badge text-bg-success">
+													${formattedScore}
+												</span>
+											`;
 		}
 
 		/*
@@ -1321,10 +1311,10 @@
 			};
 
 			return `
-						<span class="badge ${statusInfo.cssClass}">
-							${statusInfo.text}
-						</span>
-					`;
+								<span class="badge ${statusInfo.cssClass}">
+									${statusInfo.text}
+								</span>
+							`;
 		}
 
 		
