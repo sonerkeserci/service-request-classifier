@@ -462,6 +462,225 @@ public class PanelController : Controller
                 });
         }
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetPredictionCandidates(int id)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        "Bu işlem yalnızca yöneticiler tarafından yapılabilir."
+                });
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir talep ID değeri gönderilmedi."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response = await client.GetAsync(
+                $"api/ServiceRequests/{id}/prediction-candidates");
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+                return Unauthorized();
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Talep veya tahmin adayları bulunamadı."
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Tahmin adayları API üzerinden alınamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            var json =
+                await response.Content.ReadAsStringAsync();
+
+            return Content(
+                json,
+                "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> AssignRequestCategory(
+        int id,
+        [FromBody] AssignCategoryDto dto)
+    {
+        var accessRedirect = ValidateAdminAccess();
+
+        if (accessRedirect is not null)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message =
+                        "Bu işlem yalnızca yöneticiler tarafından yapılabilir."
+                });
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir talep ID değeri gönderilmedi."
+            });
+        }
+
+        if (dto.CategoryId <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir kategori seçilmedi."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            var response = await client.PutAsJsonAsync(
+                $"api/ServiceRequests/{id}/assign",
+                dto);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+                return Unauthorized();
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu işlem için yönetici yetkisi gereklidir."
+                    });
+            }
+
+            if (response.StatusCode == HttpStatusCode.BadRequest)
+            {
+                return BadRequest(new
+                {
+                    message =
+                        "Talep veya seçilen kategori geçersiz."
+                });
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Talep bulunamadı."
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Talep seçilen kategoriye atanamadı.",
+
+                        detail = apiError
+                    });
+            }
+
+            return NoContent();
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
     [HttpGet]
     public IActionResult Departments()
     {
