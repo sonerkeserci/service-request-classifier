@@ -1,5 +1,7 @@
-﻿using System.Globalization;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using RequestClassifier.Application.DTOs.ServiceRequests;
+using System.Globalization;
+using System.Net;
 using System.Net.Http.Headers;
 
 namespace RequestClassifier.Web.Controllers;
@@ -254,6 +256,102 @@ public class PanelController : Controller
             return Content(
                 json,
                 "application/json");
+        }
+        catch (HttpRequestException)
+        {
+            return StatusCode(
+                StatusCodes.Status503ServiceUnavailable,
+                new
+                {
+                    message =
+                        "API servisine ulaşılamıyor."
+                });
+        }
+    }
+
+    [HttpPut]
+    public async Task<IActionResult> UpdateRequestStatus(
+    int id,
+    [FromBody] UpdateRequestStatusDto dto)
+    {
+        var loginRedirect = ValidateSession();
+
+        if (loginRedirect is not null)
+        {
+            return Unauthorized();
+        }
+
+        if (id <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Geçerli bir talep ID değeri gönderilmedi."
+            });
+        }
+
+        var token =
+            HttpContext.Session.GetString("JwtToken");
+
+        var client =
+            _httpClientFactory.CreateClient(
+                "RequestClassifierApi");
+
+        client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                token);
+
+        try
+        {
+            // Sends the new status and description to the protected API endpoint.
+            var response = await client.PutAsJsonAsync(
+                $"api/ServiceRequests/{id}/status",
+                dto);
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                HttpContext.Session.Clear();
+
+                return Unauthorized();
+            }
+
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return StatusCode(
+                    StatusCodes.Status403Forbidden,
+                    new
+                    {
+                        message =
+                            "Bu talebin durumunu güncelleme yetkiniz bulunmuyor."
+                    });
+            }
+
+            if (response.StatusCode == HttpStatusCode.NotFound)
+            {
+                return NotFound(new
+                {
+                    message =
+                        "Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+                });
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var apiError =
+                    await response.Content.ReadAsStringAsync();
+
+                return StatusCode(
+                    (int)response.StatusCode,
+                    new
+                    {
+                        message =
+                            "Talep durumu API üzerinden güncellenemedi.",
+
+                        detail = apiError
+                    });
+            }
+
+            return NoContent();
         }
         catch (HttpRequestException)
         {
