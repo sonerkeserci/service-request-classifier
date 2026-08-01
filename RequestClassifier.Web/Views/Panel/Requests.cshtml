@@ -1,5 +1,10 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+
+@{
 	ViewData["Title"] = "Talepler";
+
+	var role = Context.Session.GetString("UserRole");
+	var isAdmin = role == "Admin";
 }
 
 <!-- Page header -->
@@ -496,6 +501,9 @@
 
 		// Stores the ID of the request currently opened in the offcanvas.
 		let selectedRequestId = null;
+
+		const isAdmin =
+			@isAdmin.ToString().ToLowerInvariant();
 
 		let allRequests = [];
 
