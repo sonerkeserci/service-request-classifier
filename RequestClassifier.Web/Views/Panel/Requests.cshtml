@@ -491,6 +491,53 @@
 					<div id="historyList">
 					</div>
 				</div>
+				@if (isAdmin)
+				{
+					<hr class="my-4">
+
+					<!-- Admin prediction analysis -->
+					<div id="adminPredictionArea">
+
+						<h6 class="fw-bold mb-3">
+							Model Tahmin Analizi
+						</h6>
+
+						<div id="predictionLoadingArea"
+							 class="text-center py-3 d-none">
+
+							<div class="spinner-border spinner-border-sm text-primary">
+							</div>
+
+							<span class="ms-2">
+								Tahmin adayları yükleniyor...
+							</span>
+						</div>
+
+						<div id="predictionErrorArea"
+							 class="alert alert-danger d-none">
+						</div>
+
+						<div id="predictionCandidateList">
+						</div>
+
+						<div class="mt-4">
+
+							<label class="form-label">
+								Manuel Atama
+							</label>
+
+							<select id="candidateSelect"
+									class="form-select">
+							</select>
+
+							<button class="btn btn-success w-100 mt-3"
+									onclick="assignCategory()">
+
+								Seçilen Kategoriye Ata
+							</button>
+						</div>
+					</div>
+				}
 			</div>
 		</div>
 	</div>
@@ -502,10 +549,11 @@
 		// Stores the ID of the request currently opened in the offcanvas.
 		let selectedRequestId = null;
 
-		const isAdmin =
-			@isAdmin.ToString().ToLowerInvariant();
+		const isAdmin = @isAdmin.ToString().ToLowerInvariant();
 
 		let allRequests = [];
+
+		let predictionCandidates = [];
 
 		/*
 		 * Runs after the HTML document is fully loaded.
@@ -701,65 +749,62 @@
 				const row = document.createElement("tr");
 
 				row.innerHTML = `
-							<td>
-								<strong>
-									${escapeHtml(request.requestNumber ?? "-")}
-								</strong>
-							</td>
+								<td>
+									<strong>
+										${escapeHtml(request.requestNumber ?? "-")}
+									</strong>
+								</td>
 
-							<td>
-								${escapeHtml(request.title ?? "-")}
-							</td>
+								<td>
+									${escapeHtml(request.title ?? "-")}
+								</td>
 
-							<td>
-								${getRequesterName(request)}
-							</td>
+								<td>
+									${getRequesterName(request)}
+								</td>
 
-							<td>
-								<div class="fw-semibold">
-									${escapeHtml(request.predictedDepartmentName ?? "-")}
-								</div>
+								<td>
+									<div class="fw-semibold">
+										${escapeHtml(request.predictedDepartmentName ?? "-")}
+									</div>
 
-								<small class="text-muted">
-									${escapeHtml(request.predictedCategoryName ?? "-")}
-								</small>
-							</td>
+									<small class="text-muted">
+										${escapeHtml(request.predictedCategoryName ?? "-")}
+									</small>
+								</td>
 
-							<td>
-								<div class="fw-semibold">
-									${escapeHtml(
-					request.assignedDepartmentName ??
-					"Henüz atanmadı"
-				)}
-								</div>
+								<td>
+									<div class="fw-semibold">
+										${escapeHtml(request.assignedDepartmentName ?? "Henüz atanmadı"	)}
+									</div>
 
-								<small class="text-muted">
-									${escapeHtml(request.assignedCategoryName ?? "-")}
-								</small>
-							</td>
+									<small class="text-muted">
+										${escapeHtml(request.assignedCategoryName ?? "-")}
+									</small>
+								</td>
 
-							<td>
-								${getStatusBadge(request.status)}
-							</td>
+								<td>
+									${getStatusBadge(request.status)}
+								</td>
 
-							<td>
-								${getPredictionScore(request)}
-							</td>
+								<td>
+									${getPredictionScore(request)}
+								</td>
 
-							<td>
-								${formatDate(request.createdAt)}
-							</td>
+								<td>
+									${formatDate(request.createdAt)}
+								</td>
 
-							<td class="text-end">
-								<button
-									type="button"
-									class="btn btn-sm btn-primary"
-									onclick="openRequestDetail(${request.id})">
+								<td class="text-end">
+									<button
+										type="button"
+										class="btn btn-sm btn-primary"
+										onclick="openRequestDetail(${request.id})">
 
-									Detay
-								</button>
-							</td>
-						`;
+										Detay
+									</button>
+								</td>
+							`;
 
 				tableBody.appendChild(row);
 			});
@@ -813,7 +858,7 @@
 					const matchesStatus =
 						!statusValue ||
 						String(request.status) === statusValue;
-					
+
 					/* This scope  */
 					const isAssigned =
 						request.assignedCategoryId !== null &&
@@ -927,6 +972,11 @@
 				const request = await response.json();
 
 				fillRequestDetail(request);
+
+				if (isAdmin) {
+					await loadPredictionCandidates();
+				}
+
 
 				contentArea.classList.remove("d-none");
 			}
@@ -1390,29 +1440,24 @@
 							history.newStatus
 						);
 
-					item.innerHTML = `
-														<div class="d-flex
-																	justify-content-between
-																	align-items-start
-																	gap-3">
+					item.innerHTML = 
+									`<div class="d-flex
+												justify-content-between
+												align-items-start
+												gap-3">
 
-																	<strong>
-																		${escapeHtml(newStatusText)}
-																	</strong>
+												<strong>
+													${escapeHtml(newStatusText)}
+												</strong>
 
-															<small class="text-muted text-nowrap">
-																${formatDate(history.changedAt)}
-															</small>
-														</div>
+										<small class="text-muted text-nowrap">
+											${formatDate(history.changedAt)}
+										</small>
+									</div>
 
-														<div class="text-secondary mt-2">
-															${escapeHtml(
-						history.description ||
-						"Açıklama girilmedi."
-					)}
-														</div>
-													`;
-
+									<div class="text-secondary mt-2">
+										${escapeHtml(history.description ||	"Açıklama girilmedi.")}
+									</div>`;
 					historyList.appendChild(item);
 				});
 			}
@@ -1430,6 +1475,169 @@
 					"d-none"
 				);
 			}
+		}
+
+		async function loadPredictionCandidates() {
+
+			predictionCandidates = [];
+
+			const loading =
+				document.getElementById(
+					"predictionLoadingArea");
+
+			const error =
+				document.getElementById(
+					"predictionErrorArea");
+
+			const list =
+				document.getElementById(
+					"predictionCandidateList");
+
+			const select =
+				document.getElementById(
+					"candidateSelect");
+
+			loading.classList.remove("d-none");
+
+			error.classList.add("d-none");
+
+			list.innerHTML = "";
+
+			select.innerHTML = "";
+
+			try {
+
+				const response =
+					await fetch(
+						`/Panel/GetPredictionCandidates?id=${selectedRequestId}`);
+
+				if (!response.ok) {
+
+					throw new Error(
+						"Tahmin adayları alınamadı.");
+				}
+
+				predictionCandidates =
+					await response.json();
+
+				predictionCandidates.forEach((candidate, index) => {
+
+					const percent =
+						(candidate.score * 100)
+							.toFixed(2);
+
+					list.innerHTML +=
+						`
+							<div class="border rounded p-3 mb-2">
+
+								<div class="d-flex justify-content-between">
+
+									<strong>
+										${index + 1}.
+										${candidate.departmentName}
+									</strong>
+
+									<span class="badge bg-primary">
+
+										${candidate.score.toFixed(6)}
+
+									</span>
+
+								</div>
+
+								<div class="text-muted small">
+
+									${candidate.categoryName}
+
+								</div>
+
+								<div class="progress mt-2">
+
+									<div class="progress-bar"
+
+										style="width:${percent}%">
+
+									</div>
+
+								</div>
+
+								<small>
+
+									${percent} %
+
+								</small>
+
+							</div>
+							`;
+
+					select.innerHTML +=
+						`
+							<option value="${candidate.categoryId}">
+
+								${candidate.departmentName}
+								/
+								${candidate.categoryName}
+
+							</option>
+							`;
+				});
+
+			}
+
+			catch (ex) {
+
+				error.classList.remove("d-none");
+
+				error.innerText = ex.message;
+			}
+
+			finally {
+
+				loading.classList.add("d-none");
+			}
+
+		}
+
+		async function assignCategory() {
+
+			const categoryId =
+				Number(
+					document.getElementById(
+						"candidateSelect").value);
+
+			const response =
+				await fetch(
+					`/Panel/AssignRequestCategory?id=${selectedRequestId}`,
+					{
+						method: "PUT",
+
+						headers: {
+							"Content-Type":
+								"application/json"
+						},
+
+						body: JSON.stringify({
+
+							categoryId
+
+						})
+					});
+
+			if (!response.ok) {
+
+				alert("Atama başarısız.");
+
+				return;
+			}
+
+			await loadRequests();
+
+			await reloadSelectedRequestDetail();
+
+			await loadPredictionCandidates();
+
+			await loadRequestHistory();
+
 		}
 
 		/*
@@ -1481,18 +1689,19 @@
 			* MinimumClassificationScoreThreshold.
 			*/
 			if (request.isLowConfidence) {
-				return `
-																	<span class="badge text-bg-warning">
-																		${formattedScore}
-																	</span>
-																`;
+				return 
+				`	<span class="badge text-bg-warning">
+						${formattedScore}
+					</span>
+				`;
 			}
 
-			return `
-																<span class="badge text-bg-success">
-																	${formattedScore}
-																</span>
-															`;
+			return 
+				`
+					<span class="badge text-bg-success">
+						${formattedScore}
+					</span>
+				`;
 		}
 
 		/*
@@ -1546,10 +1755,10 @@
 			};
 
 			return `
-												<span class="badge ${statusInfo.cssClass}">
-													${statusInfo.text}
-												</span>
-											`;
+																<span class="badge ${statusInfo.cssClass}">
+																	${statusInfo.text}
+																</span>
+															`;
 		}
 
 		
