@@ -86,7 +86,7 @@ public class ServiceRequestService : IServiceRequestService
             {
                 OldStatus = null,
                 NewStatus = RequestStatus.Received,
-                Description = "The service request was received.",
+                Description = "Talep sisteme alındı.",
                 ChangedAt = DateTime.UtcNow
             });
 
@@ -110,8 +110,8 @@ public class ServiceRequestService : IServiceRequestService
                     OldStatus = RequestStatus.Received,
                     NewStatus = RequestStatus.Assigned,
                     Description =
-                        $"The request was automatically assigned to " +
-                        $"'{predictedCategory!.Department.Name}/{predictedCategory.Name}'.",
+                        $"Talep otomatik olarak '{predictedCategory!.Department.Name}' birimine, " +
+                        $"'{predictedCategory.Name}' kategorisiyle atandı.",
                     ChangedAt = DateTime.UtcNow
                 });
         }
@@ -129,7 +129,9 @@ public class ServiceRequestService : IServiceRequestService
                     OldStatus = RequestStatus.Received,
                     NewStatus = RequestStatus.Classified,
                     Description =
-                        $"The request was classified as '{predictedCategory?.Name ?? "Unknown"}' and left for employee review.",
+                        predictedCategory is null
+                            ? "Talep sınıflandırılamadı ve manuel incelemeye bırakıldı."
+                            : $"Talep '{predictedCategory.Name}' kategorisi olarak sınıflandırıldı ve manuel incelemeye alındı.",
                     ChangedAt = DateTime.UtcNow
                 });
         }
@@ -496,19 +498,43 @@ public class ServiceRequestService : IServiceRequestService
     public async Task<bool> AssignCategoryAsync(int id, AssignCategoryDto dto)
     {
         // Load the service request that will be updated.
-        var serviceRequest = await _context.ServiceRequests.
-            FirstOrDefaultAsync(sr => sr.Id == id);
+        var serviceRequest = await _context.ServiceRequests
+        .Include(sr => sr.AssignedCategory)
+            .ThenInclude(category => category!.Department)
+        .FirstOrDefaultAsync(sr => sr.Id == id);
 
         if (serviceRequest is null)
             return false;
 
         // Load the selected active category.
-        var category = await _context.RequestCategories.
-            FirstOrDefaultAsync(rc => rc.Id == dto.CategoryId && rc.IsActive);
+        var category = await _context.RequestCategories
+         .Include(rc => rc.Department)
+         .FirstOrDefaultAsync(rc =>
+             rc.Id == dto.CategoryId &&
+             rc.IsActive);
 
         if (category is null)
             return false;
 
+        var previousCategoryName = serviceRequest.AssignedCategory?.Name;
+
+        var previousDepartmentName = serviceRequest.AssignedCategory?.Department?.Name;
+
+        string historyDescription;
+
+        if (serviceRequest.AssignedCategoryId is null)
+        {
+            historyDescription =
+                $"Talep '{category.Department.Name}' birimine, " +
+                $"'{category.Name}' kategorisiyle manuel olarak atandı.";
+        }
+        else
+        {
+            historyDescription =
+                $"Talep '{previousDepartmentName ?? "-"} / {previousCategoryName ?? "-"}' " +
+                $"atamasından '{category.Department.Name} / {category.Name}' " +
+                $"atamasına güncellendi.";
+        }
 
         // Store the current status before changing it.
         var oldStatus = serviceRequest.Status;
@@ -532,8 +558,7 @@ public class ServiceRequestService : IServiceRequestService
                 ServiceRequestId = serviceRequest.Id,
                 OldStatus = oldStatus,
                 NewStatus = RequestStatus.Assigned,
-                Description =
-                $"Category manually assigned as '{category.Name}'.",
+                Description = historyDescription,
                 ChangedAt = DateTime.UtcNow
 
             });
