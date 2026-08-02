@@ -41,10 +41,7 @@ public class ServiceRequestService : IServiceRequestService
                 category.IsActive &&
                 category.Name == predictionResult.PredictedCategory);
 
-        var shouldAutoAssign =
-            predictedCategory != null &&
-            (predictionResult.MaxScore >= _machineLearningSettings.AutoAssignmentScoreThreshold) &&
-            (predictionResult.ScoreMargin >= _machineLearningSettings.AutoAssignmentMarginThreshold);
+        var shouldAutoAssign = predictedCategory is not null && ShouldAutoAssign(predictionResult.MaxScore, predictionResult.ScoreMargin);
 
         var serviceRequest = new ServiceRequest
         {
@@ -602,5 +599,86 @@ public class ServiceRequestService : IServiceRequestService
             RequesterEmail = request.RequesterEmail,
             RequesterPhoneNumber = request.RequesterPhoneNumber,
         };
+    }
+
+    private static bool ShouldAutoAssign(float maxScore, float scoreMargin)
+    {
+        /*
+         * The second-highest prediction score can be calculated
+         * because ScoreMargin is the difference between the
+         * first and second prediction scores.
+         */
+        var secondScore =
+            Math.Max(
+                0f,
+                maxScore - scoreMargin);
+
+        /*
+         * Ratio indicates how many times stronger the first
+         * prediction is than the second prediction.
+         */
+        var dominanceRatio =
+            secondScore <= 0.0001f
+                ? float.PositiveInfinity
+                : maxScore / secondScore;
+
+        /*
+         * Scores below 15% are always left for manual review.
+         */
+        if (maxScore < 0.15f)
+        {
+            return false;
+        }
+
+        /*
+         * Low score range:
+         *
+         * The score is low, so the closest competing category
+         * must be below 9%, and the first result must be at least
+         * twice as strong as the second result.
+         */
+        if (maxScore < 0.24f)
+        {
+            return
+                secondScore <= 0.09f &&
+                scoreMargin >= 0.08f &&
+                dominanceRatio >= 2.00f;
+        }
+
+        /*
+         * Lower-middle score range:
+         *
+         * Require a strong separation because several related
+         * municipal categories can receive similar scores.
+         */
+        if (maxScore < 0.35f)
+        {
+            return
+                scoreMargin >= 0.12f &&
+                dominanceRatio >= 2.30f;
+        }
+
+        /*
+         * Upper-middle score range:
+         *
+         * The main score is stronger, so a slightly lower
+         * relative dominance is acceptable.
+         */
+        if (maxScore < 0.45f)
+        {
+            return
+                scoreMargin >= 0.10f &&
+                dominanceRatio >= 1.60f;
+        }
+
+        /*
+         * High score range:
+         *
+         * Even a high top score is not enough when the second
+         * category is almost tied with it.
+         */
+        return
+            scoreMargin >= 0.08f &&
+            dominanceRatio >= 1.35f;
     }
 }
