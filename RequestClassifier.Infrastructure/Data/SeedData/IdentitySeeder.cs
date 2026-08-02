@@ -9,60 +9,103 @@ public static class IdentitySeeder
         UserManager<ApplicationUser> userManager,
         RoleManager<IdentityRole> roleManager)
     {
-        // Create the required application roles if they do not already exist.
-        var roles = new[] { "Admin", "Employee" };
+        var roles = new[]
+        {
+            "Admin",
+            "Employee"
+        };
 
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role))
             {
-                await roleManager.CreateAsync(new IdentityRole(role));
+                var roleResult =
+                    await roleManager.CreateAsync(
+                        new IdentityRole(role));
+
+                if (!roleResult.Succeeded)
+                {
+                    var errors = string.Join(
+                        ", ",
+                        roleResult.Errors.Select(
+                            error => error.Description));
+
+                    throw new InvalidOperationException(
+                        $"Rol oluşturulamadı: {errors}");
+                }
             }
         }
 
-        const string adminEmail = "admin@vbb.com";
-        const string adminPassword = "Admin.65";
+        /*
+         * Sistemde Admin rolüne sahip en az bir kullanıcı varsa
+         * yeni başlangıç yöneticisi oluşturma.
+         *
+         * Böylece yönetici e-postası panelden değiştirilse bile
+         * Seeder tekrar ikinci bir admin oluşturmaz.
+         */
+        var existingAdmins =
+            await userManager.GetUsersInRoleAsync(
+                "Admin");
 
-        // Stop if the initial administrator account already exists.
-        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
-
-        if (existingAdmin is not null)
-            return;
-
-        var adminUser = new ApplicationUser
+        if (existingAdmins.Any())
         {
-            UserName = adminEmail,
-            Email = adminEmail,
-            FirstName = "System",
-            LastName = "Admin",
-            IsActive = true,
-            EmailConfirmed = true
-        };
+            return;
+        }
 
-        // Create the initial administrator account.
-        var createResult = await userManager.CreateAsync(
-            adminUser,
-            adminPassword);
+        /*
+         * Bunlar yalnızca veritabanında hiç yönetici
+         * bulunmadığında kullanılacak başlangıç bilgileridir.
+         */
+        const string adminEmail =
+            "admin@belediye.gov.tr";
+
+        const string adminPassword =
+            "Admin.65";
+
+        var adminUser =
+            new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FirstName = "Admin",
+                LastName = "Belediye",
+                IsActive = true,
+                EmailConfirmed = true
+            };
+
+        var createResult =
+            await userManager.CreateAsync(
+                adminUser,
+                adminPassword);
 
         if (!createResult.Succeeded)
         {
             var errors = string.Join(
                 ", ",
-                createResult.Errors.Select(error => error.Description));
+                createResult.Errors.Select(
+                    error => error.Description));
 
             throw new InvalidOperationException(
-                $"The initial administrator could not be created: {errors}");
+                $"Başlangıç yöneticisi oluşturulamadı: {errors}");
         }
 
-        // Assign the Admin role to the initial administrator account.
-        var roleResult = await userManager.AddToRoleAsync(
-            adminUser,
-            "Admin");
+        var roleAssignmentResult =
+            await userManager.AddToRoleAsync(
+                adminUser,
+                "Admin");
 
-        if (!roleResult.Succeeded)
+        if (!roleAssignmentResult.Succeeded)
         {
+            await userManager.DeleteAsync(
+                adminUser);
+
+            var errors = string.Join(
+                ", ",
+                roleAssignmentResult.Errors.Select(
+                    error => error.Description));
+
             throw new InvalidOperationException(
-                "The Admin role could not be assigned.");
+                $"Admin rolü atanamadı: {errors}");
         }
     }
 }

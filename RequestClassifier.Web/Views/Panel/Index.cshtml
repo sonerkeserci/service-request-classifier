@@ -1,73 +1,169 @@
-﻿@{
-    ViewData["Title"] = "Yönetim Paneli";
+@{
+    ViewData["Title"] = "Gösterge Paneli";
+    Layout = "_PanelLayout";
 }
 
-<div class="mb-4">
-    <h2 class="mb-1">
-        Yönetim Paneli
-    </h2>
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">
+            Yönetim Paneli
+        </h2>
 
-    <p class="text-muted mb-0">
-        Belediye hizmet yönetim sistemine hoş geldiniz.
-    </p>
+        <p class="text-muted mb-0">
+            Belediye hizmet yönetim sistemine hoş geldiniz.
+        </p>
+    </div>
+
+    <button type="button"
+            id="refreshDashboardButton"
+            class="btn btn-outline-primary"
+            onclick="loadDashboard()">
+
+        <i class="bi bi-arrow-clockwise me-2"></i>
+        Yenile
+    </button>
+</div>
+
+<div id="dashboardMessage"
+     class="alert d-none">
 </div>
 
 <div class="row g-4">
+    <div class="col-xl-3 col-md-6">
+        <a asp-controller="Panel"
+           asp-action="Requests"
+           class="text-decoration-none">
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <small class="text-muted">
-                    Toplam Talep
-                </small>
+            <div class="card h-100 border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="text-muted mb-2">
+                                Toplam Talep
+                            </div>
 
-                <h2 id="totalRequestCount">
-                    -
-                </h2>
+                            <div id="totalRequestCount"
+                                 class="display-6 fw-bold text-dark">
+                                -
+                            </div>
+                        </div>
+
+                        <div class="dashboard-icon bg-primary-subtle text-primary">
+                            <i class="bi bi-inbox"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <small class="text-muted">
-                    Bekleyen Talep
-                </small>
+    <div class="col-xl-3 col-md-6">
+        <a asp-controller="Panel"
+           asp-action="Requests"
+           class="text-decoration-none">
 
-                <h2 id="pendingRequestCount">
-                    -
-                </h2>
+            <div class="card h-100 border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="text-muted mb-2">
+                                Bekleyen Talep
+                            </div>
+
+                            <div id="pendingRequestCount"
+                                 class="display-6 fw-bold text-dark">
+                                -
+                            </div>
+                        </div>
+
+                        <div class="dashboard-icon bg-warning-subtle text-warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <small class="text-muted">
-                    Personel
-                </small>
+    <div class="col-xl-3 col-md-6">
+        <a asp-controller="Panel"
+           asp-action="Employees"
+           class="text-decoration-none">
 
-                <h2 id="employeeCount">
-                    -
-                </h2>
+            <div class="card h-100 border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="text-muted mb-2">
+                                Personel
+                            </div>
+
+                            <div id="employeeCount"
+                                 class="display-6 fw-bold text-dark">
+                                -
+                            </div>
+                        </div>
+
+                        <div class="dashboard-icon bg-success-subtle text-success">
+                            <i class="bi bi-people"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
 
-    <div class="col-md-3">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <small class="text-muted">
-                    Departman
-                </small>
+    <div class="col-xl-3 col-md-6">
+        <a asp-controller="Panel"
+           asp-action="Departments"
+           class="text-decoration-none">
 
-                <h2 id="departmentCount">
-                    -
-                </h2>
+            <div class="card h-100 border-0 shadow-sm dashboard-card">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <div class="text-muted mb-2">
+                                Departman
+                            </div>
+
+                            <div id="departmentCount"
+                                 class="display-6 fw-bold text-dark">
+                                -
+                            </div>
+                        </div>
+
+                        <div class="dashboard-icon bg-info-subtle text-info">
+                            <i class="bi bi-buildings"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
-
 </div>
+
+<style>
+    .dashboard-card {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 0.75rem 1.5rem rgba(15, 23, 42, 0.10) !important;
+    }
+
+    .dashboard-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+</style>
+
+@section Scripts {
+    <script src="~/js/panel/dashboard.js"></script>
+}
