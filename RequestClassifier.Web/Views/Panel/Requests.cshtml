@@ -278,7 +278,6 @@
 						</span>
 					</div>
 				</div>
-
 				<div class="col-6">
 					<div class="d-flex align-items-center gap-1">
 						<small class="text-muted">
@@ -288,13 +287,13 @@
 						<i class="bi bi-question-circle text-secondary"
 						   data-bs-toggle="tooltip"
 						   data-bs-placement="top"
-						   title="Modelin oluşturduğu kategori tahmin vektöründeki en yüksek değerli elemanın skorudur. Tahmin skoru 0.45'ten ve tahmin güven farkı 0.20'den büyükse ilgili birime otomatik atama gerçekleşir.">
+						   title="Modelin en güçlü kategori tahmininin skorudur. Skor yükseldikçe tahmin güçlenir.">
 						</i>
 					</div>
 
-					<div id="detailPredictionScore">
+					<strong id="detailPredictionScore">
 						-
-					</div>
+					</strong>
 				</div>
 
 				<div class="col-6">
@@ -306,7 +305,7 @@
 						<i class="bi bi-question-circle text-secondary"
 						   data-bs-toggle="tooltip"
 						   data-bs-placement="top"
-						   title="Tahmin güven farkı, en yüksek iki kategori tahmini arasındaki farktır. Tahmin güven farkı 0.20'den ve tahmin skoru 0.45'ten büyükse ilgili birime otomatik atama gerçekleşir.">
+						   title="En yüksek iki kategori tahmini arasındaki farktır. Fark büyüdükçe tahmin daha nettir.">
 						</i>
 					</div>
 
@@ -334,236 +333,364 @@
 						-
 					</strong>
 				</div>
-			</div>
 
-			<hr class="my-4">
+				<div class="col-12">
+					<button type="button"
+							class="btn btn-sm btn-link text-decoration-none px-0"
+							data-bs-toggle="collapse"
+							data-bs-target="#automaticAssignmentExplanation"
+							aria-expanded="false"
+							aria-controls="automaticAssignmentExplanation">
 
-			<div>
-				<small class="text-muted d-block">
-					E-posta
-				</small>
+						<i class="bi bi-info-circle me-1"></i>
+						Otomatik atama nasıl gerçekleşir?
+					</button>
 
-				<span id="detailEmail">
-					-
-				</span>
-			</div>
+					<div class="collapse"
+						 id="automaticAssignmentExplanation">
 
-			<div class="mt-3">
-				<small class="text-muted d-block">
-					Telefon
-				</small>
+						<div class="p-3 mt-1 border rounded-3 bg-light small">
 
-				<span id="detailPhone">
-					-
-				</span>
-			</div>
+							<p class="mb-2">
+								Sistem, yalnızca en yüksek tahmin skoruna bakmaz.
+								En yüksek skor, ikinci sıradaki skor ve bu iki skor
+								arasındaki fark birlikte değerlendirilir.
+							</p>
 
-			<hr class="my-4">
+							<div class="mb-3 text-muted">
+								<strong>Tahmin skoru:</strong>
+								Modelin en güçlü kategori sonucu.
+								<br />
 
-			<!-- Allows Admin and Employee users to update the request status. -->
-			<div>
-				<h6 class="fw-bold mb-3">
-					Durum Güncelle
-				</h6>
-
-				<!-- Displays success or error messages after status update. -->
-				<div id="statusUpdateMessage"
-					 class="alert d-none">
-				</div>
-
-				<div class="mb-3">
-					<label for="newStatusSelect"
-						   class="form-label">
-						Yeni durum
-					</label>
-
-					<select id="newStatusSelect"
-							class="form-select">
-
-						<option value="">
-							Durum seçin
-						</option>
-
-						<option value="1">
-							Alındı
-						</option>
-
-						<option value="2">
-							Sınıflandırıldı
-						</option>
-
-						<option value="3">
-							Birime Atandı
-						</option>
-
-						<option value="4">
-							İşleme Alındı
-						</option>
-
-						<option value="5">
-							Çözüldü
-						</option>
-
-						<option value="6">
-							Kapatıldı
-						</option>
-
-						<option value="7">
-							Reddedildi
-						</option>
-					</select>
-				</div>
-
-				<div class="mb-3">
-					<label for="statusDescription"
-						   class="form-label">
-						Açıklama
-					</label>
-
-					<textarea id="statusDescription"
-							  class="form-control"
-							  rows="3"
-							  placeholder="Durum değişikliği hakkında açıklama girin..."></textarea>
-				</div>
-
-				<button type="button"
-						id="updateStatusButton"
-						class="btn btn-primary w-100"
-						onclick="updateRequestStatus()">
-
-					Durumu Güncelle
-				</button>
-			</div>
-
-			<hr class="my-4">
-
-			<!-- Status history remains collapsed until the user opens it. -->
-			<div>
-				<button type="button"
-						id="historyToggleButton"
-						class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
-						data-bs-toggle="collapse"
-						data-bs-target="#requestHistoryCollapse"
-						aria-expanded="false"
-						aria-controls="requestHistoryCollapse">
-
-					<span>
-						<i class="bi bi-clock-history me-2"></i>
-						Durum Geçmişini Göster
-					</span>
-
-					<i class="bi bi-chevron-down"></i>
-				</button>
-
-				<div class="collapse mt-3"
-					 id="requestHistoryCollapse">
-
-					<!-- Displayed while history records are loading. -->
-					<div id="historyLoadingArea"
-						 class="text-center py-4 d-none">
-
-						<div class="spinner-border spinner-border-sm text-primary"
-							 role="status">
-						</div>
-
-						<span class="text-muted ms-2">
-							Durum geçmişi yükleniyor...
-						</span>
-					</div>
-
-					<!-- Displays history loading errors. -->
-					<div id="historyErrorArea"
-						 class="alert alert-danger d-none">
-					</div>
-
-					<!-- Displays an empty message when no history exists. -->
-					<div id="historyEmptyArea"
-						 class="alert alert-light border d-none">
-
-						Durum geçmişi bulunamadı.
-					</div>
-
-					<!-- History cards will be generated here. -->
-					<div id="historyList">
-					</div>
-				</div>
-				@if (isAdmin)
-				{
-					<hr class="my-4">
-
-					<!-- Admin prediction analysis -->
-					<div id="adminPredictionArea">
-
-						<h6 class="fw-bold mb-3">
-							Model Tahmin Analizi
-						</h6>
-
-						<p class="text-muted small mb-3">
-							Model 74 kategori üzerinde değerlendirme yaptı.
-							En güçlü 5 tahmin aşağıda listelenmektedir.
-						</p>
-
-						<div id="predictionLoadingArea"
-							 class="text-center py-3 d-none">
-
-							<div class="spinner-border spinner-border-sm text-primary">
+								<strong>Güven farkı:</strong>
+								Birinci ve ikinci kategori skorları arasındaki fark.
 							</div>
 
-							<span class="ms-2">
-								Tahmin adayları yükleniyor...
+							<div class="table-responsive">
+								<table class="table table-sm align-middle mb-2">
+									<thead>
+										<tr>
+											<th scope="col">
+												Tahmin skoru
+											</th>
+
+											<th scope="col">
+												Otomatik atama koşulu
+											</th>
+										</tr>
+									</thead>
+
+									<tbody>
+										<tr>
+											<td class="text-nowrap">
+												%15 altı
+											</td>
+
+											<td>
+												Otomatik atama yapılmaz.
+												Talep manuel incelemeye bırakılır.
+											</td>
+										</tr>
+
+										<tr>
+											<td class="text-nowrap">
+												%15 – %24
+											</td>
+
+											<td>
+												İkinci skor en fazla
+												<strong>%9</strong>,
+												güven farkı en az
+												<strong>8 puan</strong>
+												ve birinci skor ikinci skorun en az
+												<strong>2 katı</strong>
+												olmalıdır.
+											</td>
+										</tr>
+
+										<tr>
+											<td class="text-nowrap">
+												%24 – %35
+											</td>
+
+											<td>
+												Güven farkı en az
+												<strong>12 puan</strong>
+												ve birinci skor ikinci skorun en az
+												<strong>2,3 katı</strong>
+												olmalıdır.
+											</td>
+										</tr>
+
+										<tr>
+											<td class="text-nowrap">
+												%35 – %45
+											</td>
+
+											<td>
+												Güven farkı en az
+												<strong>10 puan</strong>
+												ve birinci skor ikinci skorun en az
+												<strong>1,6 katı</strong>
+												olmalıdır.
+											</td>
+										</tr>
+
+										<tr>
+											<td class="text-nowrap">
+												%45 ve üzeri
+											</td>
+
+											<td>
+												Güven farkı en az
+												<strong>8 puan</strong>
+												ve birinci skor ikinci skorun en az
+												<strong>1,35 katı</strong>
+												olmalıdır.
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+
+							<div class="text-muted">
+								İlgili aralıktaki koşulların tamamı karşılanırsa
+								talep tahmin edilen birime otomatik olarak atanır.
+								Koşullardan biri karşılanmazsa talep yönetici
+								incelemesine bırakılır.
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<hr class="my-4">
+
+				<div>
+					<small class="text-muted d-block">
+						E-posta
+					</small>
+
+					<span id="detailEmail">
+						-
+					</span>
+				</div>
+
+				<div class="mt-3">
+					<small class="text-muted d-block">
+						Telefon
+					</small>
+
+					<span id="detailPhone">
+						-
+					</span>
+				</div>
+
+				<hr class="my-4">
+
+				<!-- Allows Admin and Employee users to update the request status. -->
+				<div>
+					<h6 class="fw-bold mb-3">
+						Durum Güncelle
+					</h6>
+
+					<!-- Displays success or error messages after status update. -->
+					<div id="statusUpdateMessage"
+						 class="alert d-none">
+					</div>
+
+					<div class="mb-3">
+						<label for="newStatusSelect"
+							   class="form-label">
+							Yeni durum
+						</label>
+
+						<select id="newStatusSelect"
+								class="form-select">
+
+							<option value="">
+								Durum seçin
+							</option>
+
+							<option value="1">
+								Alındı
+							</option>
+
+							<option value="2">
+								Sınıflandırıldı
+							</option>
+
+							<option value="3">
+								Birime Atandı
+							</option>
+
+							<option value="4">
+								İşleme Alındı
+							</option>
+
+							<option value="5">
+								Çözüldü
+							</option>
+
+							<option value="6">
+								Kapatıldı
+							</option>
+
+							<option value="7">
+								Reddedildi
+							</option>
+						</select>
+					</div>
+
+					<div class="mb-3">
+						<label for="statusDescription"
+							   class="form-label">
+							Açıklama
+						</label>
+
+						<textarea id="statusDescription"
+								  class="form-control"
+								  rows="3"
+								  placeholder="Durum değişikliği hakkında açıklama girin..."></textarea>
+					</div>
+
+					<button type="button"
+							id="updateStatusButton"
+							class="btn btn-primary w-100"
+							onclick="updateRequestStatus()">
+
+						Durumu Güncelle
+					</button>
+				</div>
+
+				<hr class="my-4">
+
+				<!-- Status history remains collapsed until the user opens it. -->
+				<div>
+					<button type="button"
+							id="historyToggleButton"
+							class="btn btn-outline-secondary w-100 d-flex justify-content-between align-items-center"
+							data-bs-toggle="collapse"
+							data-bs-target="#requestHistoryCollapse"
+							aria-expanded="false"
+							aria-controls="requestHistoryCollapse">
+
+						<span>
+							<i class="bi bi-clock-history me-2"></i>
+							Durum Geçmişini Göster
+						</span>
+
+						<i class="bi bi-chevron-down"></i>
+					</button>
+
+					<div class="collapse mt-3"
+						 id="requestHistoryCollapse">
+
+						<!-- Displayed while history records are loading. -->
+						<div id="historyLoadingArea"
+							 class="text-center py-4 d-none">
+
+							<div class="spinner-border spinner-border-sm text-primary"
+								 role="status">
+							</div>
+
+							<span class="text-muted ms-2">
+								Durum geçmişi yükleniyor...
 							</span>
 						</div>
 
-						<div id="predictionErrorArea"
+						<!-- Displays history loading errors. -->
+						<div id="historyErrorArea"
 							 class="alert alert-danger d-none">
 						</div>
 
-						<div id="predictionCandidateList">
+						<!-- Displays an empty message when no history exists. -->
+						<div id="historyEmptyArea"
+							 class="alert alert-light border d-none">
+
+							Durum geçmişi bulunamadı.
 						</div>
 
-						<div class="mt-4">
-
-							<label class="form-label">
-								Manuel Atama
-							</label>
-
-							<select id="candidateSelect"
-									class="form-select">
-							</select>
-
-							<button class="btn btn-success w-100 mt-3"
-									onclick="assignCategory()">
-
-								Seçilen Kategoriye Ata
-							</button>
+						<!-- History cards will be generated here. -->
+						<div id="historyList">
 						</div>
 					</div>
-				}
+					@if (isAdmin)
+					{
+						<hr class="my-4">
+
+						<!-- Admin prediction analysis -->
+						<div id="adminPredictionArea">
+
+							<h6 class="fw-bold mb-3">
+								Model Tahmin Analizi
+							</h6>
+
+							<p class="text-muted small mb-3">
+								Model 74 kategori üzerinde değerlendirme yaptı.
+								En güçlü 5 tahmin aşağıda listelenmektedir.
+							</p>
+
+							<div id="predictionLoadingArea"
+								 class="text-center py-3 d-none">
+
+								<div class="spinner-border spinner-border-sm text-primary">
+								</div>
+
+								<span class="ms-2">
+									Tahmin adayları yükleniyor...
+								</span>
+							</div>
+
+							<div id="predictionErrorArea"
+								 class="alert alert-danger d-none">
+							</div>
+
+							<div id="predictionCandidateList">
+							</div>
+
+							<div class="mt-4">
+
+								<label class="form-label">
+									Manuel Atama
+								</label>
+
+								<select id="candidateSelect"
+										class="form-select">
+								</select>
+
+								<button class="btn btn-success w-100 mt-3"
+										onclick="assignCategory()">
+
+									Seçilen Kategoriye Ata
+								</button>
+							</div>
+						</div>
+					}
+				</div>
 			</div>
 		</div>
 	</div>
-</div>
 </div>
 
 
 @section Scripts {
 	<script>
 
-		// Stores the ID of the request currently opened in the offcanvas.
-		let selectedRequestId = null;
+			// Stores the ID of the request currently opened in the offcanvas.
+			let selectedRequestId = null;
 
 	const isAdmin =
 		"@isAdmin".toLowerCase() === "true";
 
-		let allRequests = [];
+			let allRequests = [];
 
-		let predictionCandidates = [];
+			let predictionCandidates = [];
 
-		/*
-		 * Runs after the HTML document is fully loaded.
-		 * Automatically loads the request list when the page opens.
-		 */
-		document.addEventListener("DOMContentLoaded", function() {
+			/*
+				* Runs after the HTML document is fully loaded.
+				* Automatically loads the request list when the page opens.
+				*/
+			document.addEventListener("DOMContentLoaded", function() {
 
 				const queryParameters =
 					new URLSearchParams(
@@ -582,1249 +709,1249 @@
 				}
 
 
-			loadRequests();
+				loadRequests();
 
-			document
-				.getElementById("requestSearchInput")
-				.addEventListener(
-					"input",
-					applyRequestFilters
-				);
+				document
+					.getElementById("requestSearchInput")
+					.addEventListener(
+						"input",
+						applyRequestFilters
+					);
 
-			document
-				.getElementById("statusFilterSelect")
-				.addEventListener(
-					"change",
-					applyRequestFilters
-				);
+				document
+					.getElementById("statusFilterSelect")
+					.addEventListener(
+						"change",
+						applyRequestFilters
+					);
 
-			document
-				.getElementById("assignmentFilterSelect")
-				.addEventListener(
-					"change",
-					applyRequestFilters
-				);
+				document
+					.getElementById("assignmentFilterSelect")
+					.addEventListener(
+						"change",
+						applyRequestFilters
+					);
 
-			document
-				.querySelectorAll('[data-bs-toggle="tooltip"]')
-				.forEach(element => {
-					new bootstrap.Tooltip(element);
-				});
-
-			/*
-			 * Loads history only when the collapse area is opened.
-			 * This prevents an unnecessary request every time
-			 * the detail offcanvas opens.
-			 */
-			const historyCollapse =
-				document.getElementById("requestHistoryCollapse");
-
-			historyCollapse.addEventListener(
-				"show.bs.collapse",
-				function() {
-					loadRequestHistory();
-				}
-			);
-		});
-
-		/*
-		 * Loads service requests from the PanelController.
-		 *
-		 * The browser sends a GET request to:
-		 * /Panel/GetRequests
-		 *
-		 * The controller will call the API by using the JWT token
-		 * stored in the session.
-		 */
-		async function loadRequests() {
-
-			// Get references to the HTML elements used by the page.
-			const loadingArea = document.getElementById("loadingArea");
-			const errorArea = document.getElementById("errorArea");
-			const tableArea = document.getElementById("requestTableArea");
-			const emptyArea = document.getElementById("emptyArea");
-			const tableBody = document.getElementById("requestTableBody");
-
-			/*
-			 * Reset the page before starting a new request.
-			 *
-			 * Show the loading spinner.
-			 * Hide the previous error, table and empty-message areas.
-			 * Clear previously generated table rows.
-			 */
-			loadingArea.classList.remove("d-none");
-			errorArea.classList.add("d-none");
-			tableArea.classList.add("d-none");
-			emptyArea.classList.add("d-none");
-
-			tableBody.innerHTML = "";
-
-			try {
-				/*
-				 * Sends a request to the MVC controller.
-				 *
-				 * This does not directly call the API project.
-				 * PanelController receives this request and then
-				 * calls the API with the user's JWT token.
-				 */
-				const response = await fetch("/Panel/GetRequests");
+				document
+					.querySelectorAll('[data-bs-toggle="tooltip"]')
+					.forEach(element => {
+						new bootstrap.Tooltip(element);
+					});
 
 				/*
-				 * HTTP 401 means that the user is not authorized.
-				 *
-				 * This may happen when:
-				 * - The session does not contain a token.
-				 * - The token has expired.
-				 * - The API rejects the token.
-				 */
-				if (response.status === 401) {
-					window.location.href = "/Account/Login";
-					return;
-				}
+					* Loads history only when the collapse area is opened.
+					* This prevents an unnecessary request every time
+					* the detail offcanvas opens.
+					*/
+				const historyCollapse =
+					document.getElementById("requestHistoryCollapse");
+
+				historyCollapse.addEventListener(
+					"show.bs.collapse",
+					function() {
+						loadRequestHistory();
+					}
+				);
+			});
+
+			/*
+				* Loads service requests from the PanelController.
+				*
+				* The browser sends a GET request to:
+				* /Panel/GetRequests
+				*
+				* The controller will call the API by using the JWT token
+				* stored in the session.
+				*/
+			async function loadRequests() {
+
+				// Get references to the HTML elements used by the page.
+				const loadingArea = document.getElementById("loadingArea");
+				const errorArea = document.getElementById("errorArea");
+				const tableArea = document.getElementById("requestTableArea");
+				const emptyArea = document.getElementById("emptyArea");
+				const tableBody = document.getElementById("requestTableBody");
+
+				/*
+					* Reset the page before starting a new request.
+					*
+					* Show the loading spinner.
+					* Hide the previous error, table and empty-message areas.
+					* Clear previously generated table rows.
+					*/
+				loadingArea.classList.remove("d-none");
+				errorArea.classList.add("d-none");
+				tableArea.classList.add("d-none");
+				emptyArea.classList.add("d-none");
+
+				tableBody.innerHTML = "";
+
+				try {
+					/*
+						* Sends a request to the MVC controller.
+						*
+						* This does not directly call the API project.
+						* PanelController receives this request and then
+						* calls the API with the user's JWT token.
+						*/
+					const response = await fetch("/Panel/GetRequests");
+
+					/*
+						* HTTP 401 means that the user is not authorized.
+						*
+						* This may happen when:
+						* - The session does not contain a token.
+						* - The token has expired.
+						* - The API rejects the token.
+						*/
+					if (response.status === 401) {
+						window.location.href = "/Account/Login";
+						return;
+					}
 
 				
-				/*
-				 * response.ok is true for successful HTTP status codes
-				 * between 200 and 299.
-				 */
-				if (!response.ok) {
-					throw new Error("Talepler alınırken bir hata oluştu.");
+					/*
+						* response.ok is true for successful HTTP status codes
+						* between 200 and 299.
+						*/
+					if (!response.ok) {
+						throw new Error("Talepler alınırken bir hata oluştu.");
+					}
+
+					/*
+						* Converts the JSON response into a JavaScript array.
+						*
+						* Expected structure:
+						*
+						* [
+						*   {
+						*     id: 1,
+						*     requestNumber: "REQ-2026-0001",
+						*     title: "Yolda çukur var",
+						*     requesterFirstName: "Ahmet",
+						*     requesterLastName: "Yılmaz",
+						*     predictedCategoryName: "Yol Bakım",
+						*     assignedCategoryName: "Yol Bakım",
+						*     status: 2,
+						*     predictionScore: 0.87,
+						*     isLowConfidence: false,
+						*     createdAt: "2026-07-31T10:30:00"
+						*   }
+						* ]
+						*/
+					const requests = await response.json();
+
+					allRequests = requests ?? [];
+
+					/*
+						* Show the empty message when the API returns
+						* null, undefined or an empty array.
+						*/
+					if (allRequests.length === 0) {
+						emptyArea.classList.remove("d-none");
+						return;
+					}
+
+					/*
+						* Creates one table row for each service request.
+						*/
+
+					applyRequestFilters();
 				}
 
-				/*
-				 * Converts the JSON response into a JavaScript array.
-				 *
-				 * Expected structure:
-				 *
-				 * [
-				 *   {
-				 *     id: 1,
-				 *     requestNumber: "REQ-2026-0001",
-				 *     title: "Yolda çukur var",
-				 *     requesterFirstName: "Ahmet",
-				 *     requesterLastName: "Yılmaz",
-				 *     predictedCategoryName: "Yol Bakım",
-				 *     assignedCategoryName: "Yol Bakım",
-				 *     status: 2,
-				 *     predictionScore: 0.87,
-				 *     isLowConfidence: false,
-				 *     createdAt: "2026-07-31T10:30:00"
-				 *   }
-				 * ]
-				 */
-				const requests = await response.json();
+				catch (error) {
+					/*
+					* Displays errors caused by:
+					* - Network problems
+					* - Invalid JSON
+					* - API errors
+					* - Controller errors
+					*/
+					errorArea.textContent = error.message;
+					errorArea.classList.remove("d-none");
+				}
+				finally {
+					/*
+						* The finally block always runs,
+						* whether the request succeeds or fails.
+						*/
+					loadingArea.classList.add("d-none");
+				}
+			}
 
-				allRequests = requests ?? [];
+			function renderRequests(requests) {
+				const tableBody =
+					document.getElementById("requestTableBody");
 
-				/*
-				 * Show the empty message when the API returns
-				 * null, undefined or an empty array.
-				 */
-				if (allRequests.length === 0) {
+				const tableArea =
+					document.getElementById("requestTableArea");
+
+				const emptyArea =
+					document.getElementById("emptyArea");
+
+				tableBody.innerHTML = "";
+
+				if (!requests || requests.length === 0) {
+					tableArea.classList.add("d-none");
 					emptyArea.classList.remove("d-none");
 					return;
 				}
 
-				/*
-				 * Creates one table row for each service request.
-				 */
+				requests.forEach(request => {
+					const row = document.createElement("tr");
 
-					applyRequestFilters();
-			}
+					row.innerHTML = `
+											<td>
+												<strong>
+													${escapeHtml(request.requestNumber ?? "-")}
+												</strong>
+											</td>
 
-			catch (error) {
-				/*
-				* Displays errors caused by:
-				* - Network problems
-				* - Invalid JSON
-				* - API errors
-				* - Controller errors
-				*/
-				errorArea.textContent = error.message;
-				errorArea.classList.remove("d-none");
-			}
-			finally {
-				/*
-				 * The finally block always runs,
-				 * whether the request succeeds or fails.
-				 */
-				loadingArea.classList.add("d-none");
-			}
-		}
+											<td>
+												${escapeHtml(request.title ?? "-")}
+											</td>
 
-		function renderRequests(requests) {
-			const tableBody =
-				document.getElementById("requestTableBody");
+											<td>
+												${getRequesterName(request)}
+											</td>
 
-			const tableArea =
-				document.getElementById("requestTableArea");
+											<td>
+												<div class="fw-semibold">
+													${escapeHtml(request.predictedDepartmentName ?? "-")}
+												</div>
 
-			const emptyArea =
-				document.getElementById("emptyArea");
+												<small class="text-muted">
+													${escapeHtml(request.predictedCategoryName ?? "-")}
+												</small>
+											</td>
 
-			tableBody.innerHTML = "";
-
-			if (!requests || requests.length === 0) {
-				tableArea.classList.add("d-none");
-				emptyArea.classList.remove("d-none");
-				return;
-			}
-
-			requests.forEach(request => {
-				const row = document.createElement("tr");
-
-				row.innerHTML = `
-								<td>
-									<strong>
-										${escapeHtml(request.requestNumber ?? "-")}
-									</strong>
-								</td>
-
-								<td>
-									${escapeHtml(request.title ?? "-")}
-								</td>
-
-								<td>
-									${getRequesterName(request)}
-								</td>
-
-								<td>
-									<div class="fw-semibold">
-										${escapeHtml(request.predictedDepartmentName ?? "-")}
-									</div>
-
-									<small class="text-muted">
-										${escapeHtml(request.predictedCategoryName ?? "-")}
-									</small>
-								</td>
-
-								<td>
-									<div class="fw-semibold">
+											<td>
+												<div class="fw-semibold">
 													${escapeHtml(request.assignedDepartmentName ?? "Henüz atanmadı")}
-									</div>
+												</div>
 
-									<small class="text-muted">
-										${escapeHtml(request.assignedCategoryName ?? "-")}
-									</small>
-								</td>
+												<small class="text-muted">
+													${escapeHtml(request.assignedCategoryName ?? "-")}
+												</small>
+											</td>
 
-								<td>
-									${getStatusBadge(request.status)}
-								</td>
+											<td>
+												${getStatusBadge(request.status)}
+											</td>
 
-								<td>
-									${getPredictionScore(request)}
-								</td>
+											<td>
+												${getPredictionScore(request)}
+											</td>
 
-								<td>
-									${formatDate(request.createdAt)}
-								</td>
+											<td>
+												${formatDate(request.createdAt)}
+											</td>
 
-								<td class="text-end">
-									<button
-										type="button"
-										class="btn btn-sm btn-primary"
-										onclick="openRequestDetail(${request.id})">
+											<td class="text-end">
+												<button
+													type="button"
+													class="btn btn-sm btn-primary"
+													onclick="openRequestDetail(${request.id})">
 
-										Detay
-									</button>
-								</td>
-							`;
+													Detay
+												</button>
+											</td>
+										`;
 
-				tableBody.appendChild(row);
-			});
-
-			emptyArea.classList.add("d-none");
-			tableArea.classList.remove("d-none");
-		}
-
-		function applyRequestFilters() {
-			const searchText =
-				document
-					.getElementById("requestSearchInput")
-					.value
-					.trim()
-					.toLocaleLowerCase("tr-TR");
-
-			const statusValue =
-				document.getElementById(
-					"statusFilterSelect"
-				).value;
-
-			const assignmentValue =
-				document.getElementById(
-					"assignmentFilterSelect"
-				).value;
-
-			const filteredRequests =
-				allRequests.filter(request => {
-					const requesterName =
-						`${request.requesterFirstName ?? ""} ` +
-						`${request.requesterLastName ?? ""}`;
-
-					const searchableText = [
-						request.requestNumber,
-						request.title,
-						request.description,
-						requesterName,
-						request.predictedDepartmentName,
-						request.predictedCategoryName,
-						request.assignedDepartmentName,
-						request.assignedCategoryName
-					]
-						.filter(Boolean)
-						.join(" ")
-						.toLocaleLowerCase("tr-TR");
-
-					const matchesSearch =
-						!searchText ||
-						searchableText.includes(searchText);
-
-					const matchesStatus =
-						!statusValue ||
-						String(request.status) === statusValue;
-					
-					const isAssigned =
-						request.assignedCategoryId !== null &&
-						request.assignedCategoryId !== undefined;
-
-					const isWaitingForAssignment =
-						!isAssigned &&
-						request.status === 2;
-
-					const matchesAssignment =
-						!assignmentValue ||
-						(
-							assignmentValue === "unassigned" &&
-							isWaitingForAssignment
-						);
-
-					return (
-						matchesSearch &&
-						matchesStatus &&
-						matchesAssignment
-					);
+					tableBody.appendChild(row);
 				});
 
-			renderRequests(filteredRequests);
-		}
-
-		function clearRequestFilters() {
-			document.getElementById(
-				"requestSearchInput"
-			).value = "";
-
-			document.getElementById(
-				"statusFilterSelect"
-			).value = "";
-
-			document.getElementById(
-				"assignmentFilterSelect"
-			).value = "";
-
-			renderRequests(allRequests);
-		}
-
-		/*
-		* Opens the offcanvas panel and loads the selected
-		* service request details from PanelController.
-		*/
-		async function openRequestDetail(requestId) {
-
-			// Remember which request is currently opened.
-			selectedRequestId = requestId;
-
-			const offcanvasElement =
-				document.getElementById("requestDetailOffcanvas");
-
-			const detailOffcanvas =
-				bootstrap.Offcanvas.getOrCreateInstance(
-					offcanvasElement
-				);
-
-			const loadingArea =
-				document.getElementById("detailLoadingArea");
-
-			const errorArea =
-				document.getElementById("detailErrorArea");
-
-			const contentArea =
-				document.getElementById("detailContentArea");
-
-			// Open the panel immediately so the user sees
-			// the loading state without waiting for the API.
-			detailOffcanvas.show();
-
-			loadingArea.classList.remove("d-none");
-			errorArea.classList.add("d-none");
-			contentArea.classList.add("d-none");
-
-			clearRequestDetail();
-
-			try {
-				const response = await fetch(
-					`/Panel/GetRequestDetail?id=${requestId}`
-				);
-
-				if (response.status === 401) {
-					window.location.href = "/Account/Login";
-					return;
-				}
-
-				if (response.status === 403) {
-					throw new Error(
-						"Bu talebi görüntüleme yetkiniz bulunmuyor."
-					);
-				}
-
-				if (response.status === 404) {
-					throw new Error(
-						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
-					);
-				}
-
-				if (!response.ok) {
-					throw new Error(
-						"Talep detayı alınırken bir hata oluştu."
-					);
-				}
-
-				const request = await response.json();
-
-				fillRequestDetail(request);
-
-				if (isAdmin) {
-					await loadPredictionCandidates();
-				}
-
-
-				contentArea.classList.remove("d-none");
+				emptyArea.classList.add("d-none");
+				tableArea.classList.remove("d-none");
 			}
-			catch (error) {
-				errorArea.textContent =
-					error.message ??
-					"Beklenmeyen bir hata oluştu.";
 
-				errorArea.classList.remove("d-none");
+			function applyRequestFilters() {
+				const searchText =
+					document
+						.getElementById("requestSearchInput")
+						.value
+						.trim()
+						.toLocaleLowerCase("tr-TR");
+
+				const statusValue =
+					document.getElementById(
+						"statusFilterSelect"
+					).value;
+
+				const assignmentValue =
+					document.getElementById(
+						"assignmentFilterSelect"
+					).value;
+
+				const filteredRequests =
+					allRequests.filter(request => {
+						const requesterName =
+							`${request.requesterFirstName ?? ""} ` +
+							`${request.requesterLastName ?? ""}`;
+
+						const searchableText = [
+							request.requestNumber,
+							request.title,
+							request.description,
+							requesterName,
+							request.predictedDepartmentName,
+							request.predictedCategoryName,
+							request.assignedDepartmentName,
+							request.assignedCategoryName
+						]
+							.filter(Boolean)
+							.join(" ")
+							.toLocaleLowerCase("tr-TR");
+
+						const matchesSearch =
+							!searchText ||
+							searchableText.includes(searchText);
+
+						const matchesStatus =
+							!statusValue ||
+							String(request.status) === statusValue;
+
+						const isAssigned =
+							request.assignedCategoryId !== null &&
+							request.assignedCategoryId !== undefined;
+
+						const isWaitingForAssignment =
+							!isAssigned &&
+							request.status === 2;
+
+						const matchesAssignment =
+							!assignmentValue ||
+							(
+								assignmentValue === "unassigned" &&
+								isWaitingForAssignment
+							);
+
+						return (
+							matchesSearch &&
+							matchesStatus &&
+							matchesAssignment
+						);
+					});
+
+				renderRequests(filteredRequests);
 			}
-			finally {
-				loadingArea.classList.add("d-none");
-			}
-		}
 
-		/*
-		* Clears values left from the previously opened request.
-		*/
-		function clearRequestDetail() {
-			document.getElementById(
-				"detailRequestNumber"
-			).textContent = "";
-
-			document.getElementById(
-				"detailTitle"
-			).textContent = "";
-
-			document.getElementById(
-				"detailDescription"
-			).textContent = "";
-
-			document.getElementById(
-				"detailRequester"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailStatus"
-			).innerHTML = "-";
-
-			document.getElementById(
-				"detailPredictedDepartment"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailAssignedDepartment"
-			).textContent = "Henüz atanmadı";
-
-			document.getElementById(
-				"detailPredictedCategory"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailAssignedCategory"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailPredictionScore"
-			).innerHTML = "-";
-
-			document.getElementById(
-				"detailPredictionMargin"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailAutoAssignment"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailCreatedAt"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailEmail"
-			).textContent = "-";
-
-			document.getElementById(
-				"detailPhone"
-			).textContent = "-";
-
-			document.getElementById(
-				"lowConfidenceWarning"
-			).classList.add("d-none");
-
-			document.getElementById(
-				"historyList"
-			).innerHTML = "";
-
-			document.getElementById(
-				"historyErrorArea"
-			).classList.add("d-none");
-
-			document.getElementById(
-				"historyEmptyArea"
-			).classList.add("d-none");
-
-			const historyCollapseElement =
+			function clearRequestFilters() {
 				document.getElementById(
-					"requestHistoryCollapse"
-				);
+					"requestSearchInput"
+				).value = "";
 
-			const historyCollapse =
-				bootstrap.Collapse.getInstance(
-					historyCollapseElement
-				);
+				document.getElementById(
+					"statusFilterSelect"
+				).value = "";
 
-			if (historyCollapse) {
-				historyCollapse.hide();
+				document.getElementById(
+					"assignmentFilterSelect"
+				).value = "";
+
+				renderRequests(allRequests);
 			}
-		}
 
-		/*
-		 * Writes the API response into the offcanvas elements.
-		 */
-		function fillRequestDetail(request) {
-			document.getElementById(
-				"detailRequestNumber"
-			).textContent =
-				request.requestNumber ?? "-";
+			/*
+			* Opens the offcanvas panel and loads the selected
+			* service request details from PanelController.
+			*/
+			async function openRequestDetail(requestId) {
 
-			document.getElementById(
-				"detailTitle"
-			).textContent =
-				request.title ?? "-";
+				// Remember which request is currently opened.
+				selectedRequestId = requestId;
 
-			document.getElementById(
-				"detailDescription"
-			).textContent =
-				request.description ?? "-";
+				const offcanvasElement =
+					document.getElementById("requestDetailOffcanvas");
 
-			const requesterName = [
-				request.requesterFirstName,
-				request.requesterLastName
-			]
-				.filter(Boolean)
-				.join(" ");
+				const detailOffcanvas =
+					bootstrap.Offcanvas.getOrCreateInstance(
+						offcanvasElement
+					);
 
-			document.getElementById(
-				"detailRequester"
-			).textContent =
-				requesterName || "-";
+				const loadingArea =
+					document.getElementById("detailLoadingArea");
 
-			document.getElementById(
-				"detailStatus"
-			).innerHTML =
-				getStatusBadge(request.status);
+				const errorArea =
+					document.getElementById("detailErrorArea");
 
-			document.getElementById(
-				"detailPredictedDepartment"
-			).textContent =
-				request.predictedDepartmentName ?? "-";
+				const contentArea =
+					document.getElementById("detailContentArea");
 
-			document.getElementById(
-				"detailAssignedDepartment"
-			).textContent =
-				request.assignedDepartmentName ?? "Henüz atanmadı";
-			document.getElementById(
-				"detailPredictedCategory"
-			).textContent =
-				request.predictedCategoryName ?? "-";
+				// Open the panel immediately so the user sees
+				// the loading state without waiting for the API.
+				detailOffcanvas.show();
 
-			document.getElementById(
-				"detailAssignedCategory"
-			).textContent =
-				request.assignedCategoryName ?? "Henüz atanmadı";
+				loadingArea.classList.remove("d-none");
+				errorArea.classList.add("d-none");
+				contentArea.classList.add("d-none");
 
-			document.getElementById(
-				"detailPredictionScore"
-			).innerHTML =
-				getPredictionScore(request);
+				clearRequestDetail();
 
-			document.getElementById(
-				"detailPredictionMargin"
-			).textContent =
-				formatScoreMargin(
-					request.predictionScoreMargin
-				);
+				try {
+					const response = await fetch(
+						`/Panel/GetRequestDetail?id=${requestId}`
+					);
 
-			document.getElementById(
-				"detailAutoAssignment"
-			).textContent =
-				request.isAutoAssigned
-					? "Evet"
-					: "Hayır";
+					if (response.status === 401) {
+						window.location.href = "/Account/Login";
+						return;
+					}
 
-			document.getElementById(
-				"detailCreatedAt"
-			).textContent =
-				formatDate(request.createdAt);
+					if (response.status === 403) {
+						throw new Error(
+							"Bu talebi görüntüleme yetkiniz bulunmuyor."
+						);
+					}
 
-			document.getElementById(
-				"detailEmail"
-			).textContent =
-				request.requesterEmail ?? "-";
+					if (response.status === 404) {
+						throw new Error(
+							"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+						);
+					}
 
-			document.getElementById(
-				"detailPhone"
-			).textContent =
-				request.requesterPhoneNumber ?? "-";
+					if (!response.ok) {
+						throw new Error(
+							"Talep detayı alınırken bir hata oluştu."
+						);
+					}
 
-			const lowConfidenceWarning =
+					const request = await response.json();
+
+					fillRequestDetail(request);
+
+					if (isAdmin) {
+						await loadPredictionCandidates();
+					}
+
+
+					contentArea.classList.remove("d-none");
+				}
+				catch (error) {
+					errorArea.textContent =
+						error.message ??
+						"Beklenmeyen bir hata oluştu.";
+
+					errorArea.classList.remove("d-none");
+				}
+				finally {
+					loadingArea.classList.add("d-none");
+				}
+			}
+
+			/*
+			* Clears values left from the previously opened request.
+			*/
+			function clearRequestDetail() {
+				document.getElementById(
+					"detailRequestNumber"
+				).textContent = "";
+
+				document.getElementById(
+					"detailTitle"
+				).textContent = "";
+
+				document.getElementById(
+					"detailDescription"
+				).textContent = "";
+
+				document.getElementById(
+					"detailRequester"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailStatus"
+				).innerHTML = "-";
+
+				document.getElementById(
+					"detailPredictedDepartment"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailAssignedDepartment"
+				).textContent = "Henüz atanmadı";
+
+				document.getElementById(
+					"detailPredictedCategory"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailAssignedCategory"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailPredictionScore"
+				).innerHTML = "-";
+
+				document.getElementById(
+					"detailPredictionMargin"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailAutoAssignment"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailCreatedAt"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailEmail"
+				).textContent = "-";
+
+				document.getElementById(
+					"detailPhone"
+				).textContent = "-";
+
 				document.getElementById(
 					"lowConfidenceWarning"
-				);
+				).classList.add("d-none");
 
-			if (request.isLowConfidence) {
-				lowConfidenceWarning.classList.remove(
-					"d-none"
-				);
-			}
-			else {
-				lowConfidenceWarning.classList.add(
-					"d-none"
-				);
-			}
-		}
+				document.getElementById(
+					"historyList"
+				).innerHTML = "";
 
-		/*
-		 * Formats the prediction score margin to three decimal places.
-		 *
-		 * If the value is null or undefined, returns a dash ("-").
-		 */
-		function formatScoreMargin(value) {
-			if (
-				value === null ||
-				value === undefined
-			) {
-				return "-";
-			}
+				document.getElementById(
+					"historyErrorArea"
+				).classList.add("d-none");
 
-			return Number(value).toFixed(3);
-		}
-
-		/*
-		* Sends the selected status and description
-		* to PanelController for the currently opened request.
-		*/
-		async function updateRequestStatus() {
-			const statusSelect =
-				document.getElementById("newStatusSelect");
-
-			const descriptionInput =
-				document.getElementById("statusDescription");
-
-			const messageArea =
-				document.getElementById("statusUpdateMessage");
-
-			const updateButton =
-				document.getElementById("updateStatusButton");
-
-			const newStatus =
-				Number(statusSelect.value);
-
-			if (!selectedRequestId) {
-				showStatusMessage(
-					"danger",
-					"Güncellenecek talep seçilemedi."
-				);
-
-				return;
-			}
-
-			if (!newStatus) {
-				showStatusMessage(
-					"warning",
-					"Lütfen yeni bir durum seçin."
-				);
-
-				return;
-			}
-
-			updateButton.disabled = true;
-			messageArea.classList.add("d-none");
-
-			try {
-				const response = await fetch(
-					`/Panel/UpdateRequestStatus?id=${selectedRequestId}`,
-					{
-						method: "PUT",
-						headers: {
-							"Content-Type": "application/json"
-						},
-						body: JSON.stringify({
-							newStatus: newStatus,
-							description:
-								descriptionInput.value.trim()
-						})
-					}
-				);
-
-				if (response.status === 401) {
-					window.location.href = "/Account/Login";
-					return;
-				}
-
-				if (response.status === 404) {
-					throw new Error(
-						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
-					);
-				}
-
-				if (!response.ok) {
-					throw new Error(
-						"Durum güncellenirken bir hata oluştu."
-					);
-				}
-
-				showStatusMessage(
-					"success",
-					"Talep durumu başarıyla güncellendi."
-				);
-
-				statusSelect.value = "";
-				descriptionInput.value = "";
-
-				// Refresh both the table and the currently opened detail.
-				await loadRequests();
-				await reloadSelectedRequestDetail();
+				document.getElementById(
+					"historyEmptyArea"
+				).classList.add("d-none");
 
 				const historyCollapseElement =
 					document.getElementById(
 						"requestHistoryCollapse"
 					);
 
-				if (historyCollapseElement.classList.contains("show")) {
-					await loadRequestHistory();
-				}
-			}
-			catch (error) {
-				showStatusMessage(
-					"danger",
-					error.message ??
-					"Beklenmeyen bir hata oluştu."
-				);
-			}
-			finally {
-				updateButton.disabled = false;
-			}
-		}
-
-		/*
-		 * Displays a Bootstrap alert inside the status update area.
-		 */
-		function showStatusMessage(type, message) {
-			const messageArea =
-				document.getElementById("statusUpdateMessage");
-
-			messageArea.className =
-				`alert alert-${type}`;
-
-			messageArea.textContent = message;
-		}
-
-		/*
-		 * Reloads the currently opened request after an update.
-		 */
-		async function reloadSelectedRequestDetail() {
-			if (!selectedRequestId) {
-				return;
-			}
-
-			const response = await fetch(
-				`/Panel/GetRequestDetail?id=${selectedRequestId}`
-			);
-
-			if (!response.ok) {
-				return;
-			}
-
-			const request =
-				await response.json();
-
-			fillRequestDetail(request);
-		}
-
-		/*
-		* Loads status history for the request currently opened
-		* in the offcanvas.
-		*/
-		async function loadRequestHistory() {
-			if (!selectedRequestId) {
-				return;
-			}
-
-			const loadingArea =
-				document.getElementById(
-					"historyLoadingArea"
-				);
-
-			const errorArea =
-				document.getElementById(
-					"historyErrorArea"
-				);
-
-			const emptyArea =
-				document.getElementById(
-					"historyEmptyArea"
-				);
-
-			const historyList =
-				document.getElementById(
-					"historyList"
-				);
-
-			loadingArea.classList.remove("d-none");
-			errorArea.classList.add("d-none");
-			emptyArea.classList.add("d-none");
-			historyList.innerHTML = "";
-
-			try {
-				const response = await fetch(
-					`/Panel/GetRequestHistory?id=${selectedRequestId}`
-				);
-
-				if (response.status === 401) {
-					window.location.href =
-						"/Account/Login";
-
-					return;
-				}
-
-				if (response.status === 403) {
-					throw new Error(
-						"Bu talebin geçmişini görüntüleme yetkiniz bulunmuyor."
+				const historyCollapse =
+					bootstrap.Collapse.getInstance(
+						historyCollapseElement
 					);
-				}
 
-				if (response.status === 404) {
-					throw new Error(
-						"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+				if (historyCollapse) {
+					historyCollapse.hide();
+				}
+			}
+
+			/*
+				* Writes the API response into the offcanvas elements.
+				*/
+			function fillRequestDetail(request) {
+				document.getElementById(
+					"detailRequestNumber"
+				).textContent =
+					request.requestNumber ?? "-";
+
+				document.getElementById(
+					"detailTitle"
+				).textContent =
+					request.title ?? "-";
+
+				document.getElementById(
+					"detailDescription"
+				).textContent =
+					request.description ?? "-";
+
+				const requesterName = [
+					request.requesterFirstName,
+					request.requesterLastName
+				]
+					.filter(Boolean)
+					.join(" ");
+
+				document.getElementById(
+					"detailRequester"
+				).textContent =
+					requesterName || "-";
+
+				document.getElementById(
+					"detailStatus"
+				).innerHTML =
+					getStatusBadge(request.status);
+
+				document.getElementById(
+					"detailPredictedDepartment"
+				).textContent =
+					request.predictedDepartmentName ?? "-";
+
+				document.getElementById(
+					"detailAssignedDepartment"
+				).textContent =
+					request.assignedDepartmentName ?? "Henüz atanmadı";
+				document.getElementById(
+					"detailPredictedCategory"
+				).textContent =
+					request.predictedCategoryName ?? "-";
+
+				document.getElementById(
+					"detailAssignedCategory"
+				).textContent =
+					request.assignedCategoryName ?? "Henüz atanmadı";
+
+				document.getElementById(
+					"detailPredictionScore"
+				).innerHTML =
+					getPredictionScore(request);
+
+				document.getElementById(
+					"detailPredictionMargin"
+				).textContent =
+					formatScoreMargin(
+						request.predictionScoreMargin
 					);
-				}
 
-				if (!response.ok) {
-					throw new Error(
-						"Durum geçmişi alınırken bir hata oluştu."
+				document.getElementById(
+					"detailAutoAssignment"
+				).textContent =
+					request.isAutoAssigned
+						? "Evet"
+						: "Hayır";
+
+				document.getElementById(
+					"detailCreatedAt"
+				).textContent =
+					formatDate(request.createdAt);
+
+				document.getElementById(
+					"detailEmail"
+				).textContent =
+					request.requesterEmail ?? "-";
+
+				document.getElementById(
+					"detailPhone"
+				).textContent =
+					request.requesterPhoneNumber ?? "-";
+
+				const lowConfidenceWarning =
+					document.getElementById(
+						"lowConfidenceWarning"
 					);
-				}
 
-				const histories =
-					await response.json();
-
-				if (!histories ||
-					histories.length === 0) {
-
-					emptyArea.classList.remove(
+				if (request.isLowConfidence) {
+					lowConfidenceWarning.classList.remove(
 						"d-none"
 					);
+				}
+				else {
+					lowConfidenceWarning.classList.add(
+						"d-none"
+					);
+				}
+			}
+
+			/*
+				* Formats the prediction score margin to three decimal places.
+				*
+				* If the value is null or undefined, returns a dash ("-").
+				*/
+			function formatScoreMargin(value) {
+				if (
+					value === null ||
+					value === undefined
+				) {
+					return "-";
+				}
+
+				return Number(value).toFixed(3);
+			}
+
+			/*
+			* Sends the selected status and description
+			* to PanelController for the currently opened request.
+			*/
+			async function updateRequestStatus() {
+				const statusSelect =
+					document.getElementById("newStatusSelect");
+
+				const descriptionInput =
+					document.getElementById("statusDescription");
+
+				const messageArea =
+					document.getElementById("statusUpdateMessage");
+
+				const updateButton =
+					document.getElementById("updateStatusButton");
+
+				const newStatus =
+					Number(statusSelect.value);
+
+				if (!selectedRequestId) {
+					showStatusMessage(
+						"danger",
+						"Güncellenecek talep seçilemedi."
+					);
 
 					return;
 				}
 
-				histories.forEach(history => {
-					const item =
-						document.createElement("div");
+				if (!newStatus) {
+					showStatusMessage(
+						"warning",
+						"Lütfen yeni bir durum seçin."
+					);
 
-					item.className =
-						"border rounded-3 p-3 mb-3 bg-light";
+					return;
+				}
 
-					const newStatusText =
-						getStatusText(
-							history.newStatus
+				updateButton.disabled = true;
+				messageArea.classList.add("d-none");
+
+				try {
+					const response = await fetch(
+						`/Panel/UpdateRequestStatus?id=${selectedRequestId}`,
+						{
+							method: "PUT",
+							headers: {
+								"Content-Type": "application/json"
+							},
+							body: JSON.stringify({
+								newStatus: newStatus,
+								description:
+									descriptionInput.value.trim()
+							})
+						}
+					);
+
+					if (response.status === 401) {
+						window.location.href = "/Account/Login";
+						return;
+					}
+
+					if (response.status === 404) {
+						throw new Error(
+							"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+						);
+					}
+
+					if (!response.ok) {
+						throw new Error(
+							"Durum güncellenirken bir hata oluştu."
+						);
+					}
+
+					showStatusMessage(
+						"success",
+						"Talep durumu başarıyla güncellendi."
+					);
+
+					statusSelect.value = "";
+					descriptionInput.value = "";
+
+					// Refresh both the table and the currently opened detail.
+					await loadRequests();
+					await reloadSelectedRequestDetail();
+
+					const historyCollapseElement =
+						document.getElementById(
+							"requestHistoryCollapse"
 						);
 
-					item.innerHTML = 
-									`<div class="d-flex
-												justify-content-between
-												align-items-start
-												gap-3">
+					if (historyCollapseElement.classList.contains("show")) {
+						await loadRequestHistory();
+					}
+				}
+				catch (error) {
+					showStatusMessage(
+						"danger",
+						error.message ??
+						"Beklenmeyen bir hata oluştu."
+					);
+				}
+				finally {
+					updateButton.disabled = false;
+				}
+			}
+
+			/*
+				* Displays a Bootstrap alert inside the status update area.
+				*/
+			function showStatusMessage(type, message) {
+				const messageArea =
+					document.getElementById("statusUpdateMessage");
+
+				messageArea.className =
+					`alert alert-${type}`;
+
+				messageArea.textContent = message;
+			}
+
+			/*
+				* Reloads the currently opened request after an update.
+				*/
+			async function reloadSelectedRequestDetail() {
+				if (!selectedRequestId) {
+					return;
+				}
+
+				const response = await fetch(
+					`/Panel/GetRequestDetail?id=${selectedRequestId}`
+				);
+
+				if (!response.ok) {
+					return;
+				}
+
+				const request =
+					await response.json();
+
+				fillRequestDetail(request);
+			}
+
+			/*
+			* Loads status history for the request currently opened
+			* in the offcanvas.
+			*/
+			async function loadRequestHistory() {
+				if (!selectedRequestId) {
+					return;
+				}
+
+				const loadingArea =
+					document.getElementById(
+						"historyLoadingArea"
+					);
+
+				const errorArea =
+					document.getElementById(
+						"historyErrorArea"
+					);
+
+				const emptyArea =
+					document.getElementById(
+						"historyEmptyArea"
+					);
+
+				const historyList =
+					document.getElementById(
+						"historyList"
+					);
+
+				loadingArea.classList.remove("d-none");
+				errorArea.classList.add("d-none");
+				emptyArea.classList.add("d-none");
+				historyList.innerHTML = "";
+
+				try {
+					const response = await fetch(
+						`/Panel/GetRequestHistory?id=${selectedRequestId}`
+					);
+
+					if (response.status === 401) {
+						window.location.href =
+							"/Account/Login";
+
+						return;
+					}
+
+					if (response.status === 403) {
+						throw new Error(
+							"Bu talebin geçmişini görüntüleme yetkiniz bulunmuyor."
+						);
+					}
+
+					if (response.status === 404) {
+						throw new Error(
+							"Talep bulunamadı veya bu talebe erişim yetkiniz yok."
+						);
+					}
+
+					if (!response.ok) {
+						throw new Error(
+							"Durum geçmişi alınırken bir hata oluştu."
+						);
+					}
+
+					const histories =
+						await response.json();
+
+					if (!histories ||
+						histories.length === 0) {
+
+						emptyArea.classList.remove(
+							"d-none"
+						);
+
+						return;
+					}
+
+					histories.forEach(history => {
+						const item =
+							document.createElement("div");
+
+						item.className =
+							"border rounded-3 p-3 mb-3 bg-light";
+
+						const newStatusText =
+							getStatusText(
+								history.newStatus
+							);
+
+						item.innerHTML =
+							`<div class="d-flex
+															justify-content-between
+															align-items-start
+															gap-3">
+
+															<strong>
+																${escapeHtml(newStatusText)}
+															</strong>
+
+													<small class="text-muted text-nowrap">
+														${formatDate(history.changedAt)}
+													</small>
+												</div>
+
+												<div class="text-secondary mt-2">
+													${escapeHtml(history.description || "Açıklama girilmedi.")}
+												</div>`;
+						historyList.appendChild(item);
+					});
+				}
+				catch (error) {
+					errorArea.textContent =
+						error.message ??
+						"Beklenmeyen bir hata oluştu.";
+
+					errorArea.classList.remove(
+						"d-none"
+					);
+				}
+				finally {
+					loadingArea.classList.add(
+						"d-none"
+					);
+				}
+			}
+
+			async function loadPredictionCandidates() {
+
+				predictionCandidates = [];
+
+				const loading =
+					document.getElementById(
+						"predictionLoadingArea");
+
+				const error =
+					document.getElementById(
+						"predictionErrorArea");
+
+				const list =
+					document.getElementById(
+						"predictionCandidateList");
+
+				const select =
+					document.getElementById(
+						"candidateSelect");
+
+				loading.classList.remove("d-none");
+
+				error.classList.add("d-none");
+
+				list.innerHTML = "";
+
+				select.innerHTML = "";
+
+				try {
+
+					const response =
+						await fetch(
+							`/Panel/GetPredictionCandidates?id=${selectedRequestId}`);
+
+					if (!response.ok) {
+
+						throw new Error(
+							"Tahmin adayları alınamadı.");
+					}
+
+					predictionCandidates =
+						await response.json();
+
+					predictionCandidates.forEach((candidate, index) => {
+						const isTopCandidate =
+							index === 0;
+
+						const badgeClass =
+							isTopCandidate
+								? "text-bg-success"
+								: "text-bg-primary";
+
+						const progressClass =
+							isTopCandidate
+								? "bg-success"
+								: "bg-primary";
+
+						const percent =
+							(candidate.score * 100)
+								.toFixed(2);
+
+						list.innerHTML +=
+							`
+										<div class="border rounded p-3 mb-2">
+
+											<div class="d-flex justify-content-between">
 
 												<strong>
-													${escapeHtml(newStatusText)}
+													${index + 1}.
+													${candidate.departmentName}
 												</strong>
 
-										<small class="text-muted text-nowrap">
-											${formatDate(history.changedAt)}
-										</small>
-									</div>
+												<span class="badge ${badgeClass}">
+													${candidate.score.toFixed(6)}
+												</span>
 
-									<div class="text-secondary mt-2">
-													${escapeHtml(history.description || "Açıklama girilmedi.")}
-									</div>`;
-					historyList.appendChild(item);
-				});
+											</div>
+
+											<div class="text-muted small">
+
+												${candidate.categoryName}
+
+											</div>
+
+											<div class="progress mt-2">
+												<div class="progress-bar ${progressClass}"
+														style="width:${percent}%">
+												</div>
+
+											</div>
+
+											<small>
+
+												${percent} %
+
+											</small>
+
+										</div>
+										`;
+
+						select.innerHTML +=
+							`
+										<option value="${candidate.categoryId}">
+
+											${candidate.departmentName}
+											/
+											${candidate.categoryName}
+
+										</option>
+										`;
+					});
+
+				}
+
+				catch (ex) {
+
+					error.classList.remove("d-none");
+
+					error.innerText = ex.message;
+				}
+
+				finally {
+
+					loading.classList.add("d-none");
+				}
+
 			}
-			catch (error) {
-				errorArea.textContent =
-					error.message ??
-					"Beklenmeyen bir hata oluştu.";
 
-				errorArea.classList.remove(
-					"d-none"
-				);
-			}
-			finally {
-				loadingArea.classList.add(
-					"d-none"
-				);
-			}
-		}
+			async function assignCategory() {
 
-		async function loadPredictionCandidates() {
-
-			predictionCandidates = [];
-
-			const loading =
-				document.getElementById(
-					"predictionLoadingArea");
-
-			const error =
-				document.getElementById(
-					"predictionErrorArea");
-
-			const list =
-				document.getElementById(
-					"predictionCandidateList");
-
-			const select =
-				document.getElementById(
-					"candidateSelect");
-
-			loading.classList.remove("d-none");
-
-			error.classList.add("d-none");
-
-			list.innerHTML = "";
-
-			select.innerHTML = "";
-
-			try {
+				const categoryId =
+					Number(
+						document.getElementById(
+							"candidateSelect").value);
 
 				const response =
 					await fetch(
-						`/Panel/GetPredictionCandidates?id=${selectedRequestId}`);
+						`/Panel/AssignRequestCategory?id=${selectedRequestId}`,
+						{
+							method: "PUT",
+
+							headers: {
+								"Content-Type":
+									"application/json"
+							},
+
+							body: JSON.stringify({
+
+								categoryId
+
+							})
+						});
 
 				if (!response.ok) {
 
-					throw new Error(
-						"Tahmin adayları alınamadı.");
+					alert("Atama başarısız.");
+
+					return;
 				}
 
-				predictionCandidates =
-					await response.json();
+				await loadRequests();
 
-				predictionCandidates.forEach((candidate, index) => {
-					const isTopCandidate =
-						index === 0;
+				await reloadSelectedRequestDetail();
 
-					const badgeClass =
-						isTopCandidate
-							? "text-bg-success"
-							: "text-bg-primary";
+				await loadPredictionCandidates();
 
-					const progressClass =
-						isTopCandidate
-							? "bg-success"
-							: "bg-primary";
-
-					const percent =
-						(candidate.score * 100)
-							.toFixed(2);
-
-					list.innerHTML +=
-						`
-							<div class="border rounded p-3 mb-2">
-
-								<div class="d-flex justify-content-between">
-
-									<strong>
-										${index + 1}.
-										${candidate.departmentName}
-									</strong>
-
-									<span class="badge ${badgeClass}">
-										${candidate.score.toFixed(6)}
-									</span>
-
-								</div>
-
-								<div class="text-muted small">
-
-									${candidate.categoryName}
-
-								</div>
-
-								<div class="progress mt-2">
-									<div class="progress-bar ${progressClass}"
-											style="width:${percent}%">
-									</div>
-
-								</div>
-
-								<small>
-
-									${percent} %
-
-								</small>
-
-							</div>
-							`;
-
-					select.innerHTML +=
-						`
-							<option value="${candidate.categoryId}">
-
-								${candidate.departmentName}
-								/
-								${candidate.categoryName}
-
-							</option>
-							`;
-				});
+				await loadRequestHistory();
 
 			}
-
-			catch (ex) {
-
-				error.classList.remove("d-none");
-
-				error.innerText = ex.message;
-			}
-
-			finally {
-
-				loading.classList.add("d-none");
-			}
-
-		}
-
-		async function assignCategory() {
-
-			const categoryId =
-				Number(
-					document.getElementById(
-						"candidateSelect").value);
-
-			const response =
-				await fetch(
-					`/Panel/AssignRequestCategory?id=${selectedRequestId}`,
-					{
-						method: "PUT",
-
-						headers: {
-							"Content-Type":
-								"application/json"
-						},
-
-						body: JSON.stringify({
-
-							categoryId
-
-						})
-					});
-
-			if (!response.ok) {
-
-				alert("Atama başarısız.");
-
-				return;
-			}
-
-			await loadRequests();
-
-			await reloadSelectedRequestDetail();
-
-			await loadPredictionCandidates();
-
-			await loadRequestHistory();
-
-		}
-
-		/*
-		 * Returns only the Turkish status text without
-		 * generating a Bootstrap badge.
-		 */
-		function getStatusText(status) {
-			const statusMap = {
-				1: "Alındı",
-				2: "Sınıflandırıldı",
-				3: "Birime Atandı",
-				4: "İşleme Alındı",
-				5: "Çözüldü",
-				6: "Kapatıldı",
-				7: "Reddedildi"
-			};
-
-			return statusMap[status] ??
-				"Bilinmeyen Durum";
-		}
-
-		function getRequesterName(request) {
-			const firstName = request.requesterFirstName ?? "";
-			const lastName = request.requesterLastName ?? "";
-			const fullName = `${firstName} ${lastName}`.trim();
-
-			return escapeHtml(fullName || "-");
-		}
-
-		/*
-		 * Opens the detail area for a selected request.
-		 *
-		 * The offcanvas detail panel will be implemented later.
-		 * For now, the selected request ID is written to
-		 * the browser console.
-		 */
-		function getPredictionScore(request) {
-			if (request.predictionScore === null ||
-				request.predictionScore === undefined) {
-				return "-";
-			}
-
-			const percentage = request.predictionScore * 100;
-			const formattedScore = `%${percentage.toFixed(1)}`;
 
 			/*
-			* isLowConfidence is calculated in the backend
-			* by comparing PredictionScore with
-			* MinimumClassificationScoreThreshold.
-			*/
-			if (request.isLowConfidence) {
-				return `	
-				<span class="badge text-bg-warning">
-						${formattedScore}
-				</span>
-				`;
+				* Returns only the Turkish status text without
+				* generating a Bootstrap badge.
+				*/
+			function getStatusText(status) {
+				const statusMap = {
+					1: "Alındı",
+					2: "Sınıflandırıldı",
+					3: "Birime Atandı",
+					4: "İşleme Alındı",
+					5: "Çözüldü",
+					6: "Kapatıldı",
+					7: "Reddedildi"
+				};
+
+				return statusMap[status] ??
+					"Bilinmeyen Durum";
 			}
 
-			return `
-				<span class="badge text-bg-success">
-						${formattedScore}
-				</span>
-				`;
-		}
+			function getRequesterName(request) {
+				const firstName = request.requesterFirstName ?? "";
+				const lastName = request.requesterLastName ?? "";
+				const fullName = `${firstName} ${lastName}`.trim();
 
-		/*
-		 * Converts the numeric RequestStatus enum value
-		 * into a readable Bootstrap badge.
-		 *
-		 * Backend enum:
-		 * 1: Received
-		 * 2: Classified
-		 * 3: Assigned
-		 * 4: InProgress
-		 * 5: Resolved
-		 * 6: Closed
-		 * 7: Rejected
-		 */
-		function getStatusBadge(status) {
-			const statusMap = {
-				1: {
-					text: "Alındı",
-					cssClass: "text-bg-secondary"
-				},
-				2: {
-					text: "Sınıflandırıldı",
-					cssClass: "text-bg-info"
-				},
-				3: {
-					text: "Birime Atandı",
-					cssClass: "text-bg-primary"
-				},
-				4: {
-					text: "İşleme Alındı",
-					cssClass: "text-bg-warning"
-				},
-				5: {
-					text: "Çözüldü",
-					cssClass: "text-bg-success"
-				},
-				6: {
-					text: "Kapatıldı",
-					cssClass: "text-bg-dark"
-				},
-				7: {
-					text: "Reddedildi",
-					cssClass: "text-bg-danger"
+				return escapeHtml(fullName || "-");
+			}
+
+			/*
+				* Opens the detail area for a selected request.
+				*
+				* The offcanvas detail panel will be implemented later.
+				* For now, the selected request ID is written to
+				* the browser console.
+				*/
+			function getPredictionScore(request) {
+				if (request.predictionScore === null ||
+					request.predictionScore === undefined) {
+					return "-";
 				}
-			};
 
-			const statusInfo = statusMap[status] ?? {
-				text: "Bilinmiyor",
-				cssClass: "text-bg-dark"
-			};
+				const percentage = request.predictionScore * 100;
+				const formattedScore = `%${percentage.toFixed(1)}`;
 
-			return `
-					<span class="badge ${statusInfo.cssClass}">
-						${statusInfo.text}
-					</span>
-					`;
-		}
+				/*
+				* isLowConfidence is calculated in the backend
+				* by comparing PredictionScore with
+				* MinimumClassificationScoreThreshold.
+				*/
+				if (request.isLowConfidence) {
+					return `
+							<span class="badge text-bg-warning">
+									${formattedScore}
+							</span>
+							`;
+				}
+
+				return `
+							<span class="badge text-bg-success">
+									${formattedScore}
+							</span>
+							`;
+			}
+
+			/*
+				* Converts the numeric RequestStatus enum value
+				* into a readable Bootstrap badge.
+				*
+				* Backend enum:
+				* 1: Received
+				* 2: Classified
+				* 3: Assigned
+				* 4: InProgress
+				* 5: Resolved
+				* 6: Closed
+				* 7: Rejected
+				*/
+			function getStatusBadge(status) {
+				const statusMap = {
+					1: {
+						text: "Alındı",
+						cssClass: "text-bg-secondary"
+					},
+					2: {
+						text: "Sınıflandırıldı",
+						cssClass: "text-bg-info"
+					},
+					3: {
+						text: "Birime Atandı",
+						cssClass: "text-bg-primary"
+					},
+					4: {
+						text: "İşleme Alındı",
+						cssClass: "text-bg-warning"
+					},
+					5: {
+						text: "Çözüldü",
+						cssClass: "text-bg-success"
+					},
+					6: {
+						text: "Kapatıldı",
+						cssClass: "text-bg-dark"
+					},
+					7: {
+						text: "Reddedildi",
+						cssClass: "text-bg-danger"
+					}
+				};
+
+				const statusInfo = statusMap[status] ?? {
+					text: "Bilinmiyor",
+					cssClass: "text-bg-dark"
+				};
+
+				return `
+								<span class="badge ${statusInfo.cssClass}">
+									${statusInfo.text}
+								</span>
+								`;
+			}
 
 		
-		/*
-		* Converts the API date value into a Turkish
-		* local date and time string.
-		*
-		* Example:
-		* 2026-07-31T10:30:00
-		*
-		* Result:
-		* 31.07.2026 10:30:00
-		*/
-		function formatDate(dateValue) {
-			if (!dateValue) {
-				return "-";
+			/*
+			* Converts the API date value into a Turkish
+			* local date and time string.
+			*
+			* Example:
+			* 2026-07-31T10:30:00
+			*
+			* Result:
+			* 31.07.2026 10:30:00
+			*/
+			function formatDate(dateValue) {
+				if (!dateValue) {
+					return "-";
+				}
+
+				const date = new Date(dateValue);
+
+				if (Number.isNaN(date.getTime())) {
+					return "-";
+				}
+
+				return date.toLocaleString("tr-TR");
 			}
 
-			const date = new Date(dateValue);
-
-			if (Number.isNaN(date.getTime())) {
-				return "-";
+			/*
+				* Encodes special HTML characters.
+				*
+				* This prevents user-entered text from being interpreted
+				* as executable HTML or JavaScript.
+				*/
+			function escapeHtml(value) {
+				return String(value)
+					.replaceAll("&", "&amp;")
+					.replaceAll("<", "&lt;")
+					.replaceAll(">", "&gt;")
+					.replaceAll('"', "&quot;")
+					.replaceAll("'", "&#039;");
 			}
-
-			return date.toLocaleString("tr-TR");
-		}
-
-		/*
-		 * Encodes special HTML characters.
-		 *
-		 * This prevents user-entered text from being interpreted
-		 * as executable HTML or JavaScript.
-		 */
-		function escapeHtml(value) {
-			return String(value)
-				.replaceAll("&", "&amp;")
-				.replaceAll("<", "&lt;")
-				.replaceAll(">", "&gt;")
-				.replaceAll('"', "&quot;")
-				.replaceAll("'", "&#039;");
-		}
 	</script>
 }
