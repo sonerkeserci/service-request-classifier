@@ -543,6 +543,8 @@
 		</div>
 	</div>
 </div>
+</div>
+
 
 @section Scripts {
 	<script>
@@ -550,7 +552,8 @@
 		// Stores the ID of the request currently opened in the offcanvas.
 		let selectedRequestId = null;
 
-		const isAdmin = @isAdmin.ToString().ToLowerInvariant();
+	const isAdmin =
+		"@isAdmin".toLowerCase() === "true";
 
 		let allRequests = [];
 
@@ -561,7 +564,26 @@
 		 * Automatically loads the request list when the page opens.
 		 */
 		document.addEventListener("DOMContentLoaded", function() {
+
+				const queryParameters =
+					new URLSearchParams(
+						window.location.search
+					);
+
+				const assignmentFilter =
+					queryParameters.get(
+						"assignment"
+					);
+
+				if (assignmentFilter === "unassigned") {
+					document.getElementById(
+						"assignmentFilterSelect"
+					).value = "unassigned";
+				}
+
+
 			loadRequests();
+
 			document
 				.getElementById("requestSearchInput")
 				.addEventListener(
@@ -706,8 +728,10 @@
 				/*
 				 * Creates one table row for each service request.
 				 */
-				renderRequests(allRequests);
+
+					applyRequestFilters();
 			}
+
 			catch (error) {
 				/*
 				* Displays errors caused by:
@@ -776,7 +800,7 @@
 
 								<td>
 									<div class="fw-semibold">
-										${escapeHtml(request.assignedDepartmentName ?? "Henüz atanmadı"	)}
+													${escapeHtml(request.assignedDepartmentName ?? "Henüz atanmadı")}
 									</div>
 
 									<small class="text-muted">
@@ -1452,7 +1476,7 @@
 									</div>
 
 									<div class="text-secondary mt-2">
-										${escapeHtml(history.description ||	"Açıklama girilmedi.")}
+													${escapeHtml(history.description || "Açıklama girilmedi.")}
 									</div>`;
 					historyList.appendChild(item);
 				});

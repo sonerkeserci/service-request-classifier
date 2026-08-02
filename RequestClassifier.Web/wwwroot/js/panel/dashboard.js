@@ -124,43 +124,15 @@ async function getDashboardData(
 
     return await response.json();
 }
-
-/*
- * RequestStatus enum sırası:
- * 0 = Received
- * 1 = Classified
- * 2 = Assigned
- * 3 = InProgress
- * 4 = Completed
- * 5 = Rejected
- *
- * API enum değerini metin veya sayı olarak gönderse de çalışır.
- */
 function isPendingRequest(request) {
-    const rawStatus =
-        request.statusName ??
-        request.status;
+    const isAssigned =
+        request.assignedCategoryId !== null &&
+        request.assignedCategoryId !== undefined;
 
-    if (typeof rawStatus === "number") {
-        return (
-            rawStatus >= 0 &&
-            rawStatus <= 3
-        );
-    }
-
-    const normalizedStatus =
-        String(rawStatus ?? "")
-            .replaceAll(" ", "")
-            .replaceAll("_", "")
-            .replaceAll("-", "")
-            .toLocaleLowerCase("en-US");
-
-    return [
-        "received",
-        "classified",
-        "assigned",
-        "inprogress"
-    ].includes(normalizedStatus);
+    return (
+        !isAssigned &&
+        Number(request.status) === 2
+    );
 }
 
 function setDashboardValues(
