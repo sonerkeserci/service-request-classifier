@@ -352,18 +352,22 @@
 						<div class="p-3 mt-1 border rounded-3 bg-light small">
 
 							<p class="mb-2">
-								Sistem, yalnızca en yüksek tahmin skoruna bakmaz.
-								En yüksek skor, ikinci sıradaki skor ve bu iki skor
-								arasındaki fark birlikte değerlendirilir.
+								Sistem; en yüksek tahmin skorunu, ikinci sıradaki
+								skoru ve bu iki skor arasındaki güven farkını
+								birlikte değerlendirir.
 							</p>
 
 							<div class="mb-3 text-muted">
 								<strong>Tahmin skoru:</strong>
-								Modelin en güçlü kategori sonucu.
+								Modelin en güçlü kategori sonucudur.
+								<br />
+
+								<strong>İkinci skor:</strong>
+								Modele göre ikinci en güçlü kategori sonucudur.
 								<br />
 
 								<strong>Güven farkı:</strong>
-								Birinci ve ikinci kategori skorları arasındaki fark.
+								Birinci ve ikinci skor arasındaki puan farkıdır.
 							</div>
 
 							<div class="table-responsive">
@@ -371,7 +375,7 @@
 									<thead>
 										<tr>
 											<th scope="col">
-												Tahmin skoru
+												En yüksek skor
 											</th>
 
 											<th scope="col">
@@ -394,44 +398,56 @@
 
 										<tr>
 											<td class="text-nowrap">
-												%15 – %24
+												≥ %15 ve &lt; %24
 											</td>
 
 											<td>
 												İkinci skor en fazla
-												<strong>%9</strong>,
+												<strong>%10</strong>,
 												güven farkı en az
-												<strong>8 puan</strong>
+												<strong>7 puan</strong>
 												ve birinci skor ikinci skorun en az
-												<strong>2 katı</strong>
+												<strong>1,8 katı</strong>
 												olmalıdır.
 											</td>
 										</tr>
 
 										<tr>
 											<td class="text-nowrap">
-												%24 – %35
+												≥ %24 ve &lt; %35
 											</td>
 
 											<td>
-												Güven farkı en az
-												<strong>12 puan</strong>
-												ve birinci skor ikinci skorun en az
-												<strong>2,3 katı</strong>
+												İkinci skor
+												<strong>%10 veya altındaysa</strong>,
+												güven farkı en az
+												<strong>11 puan</strong>
+												ve üstünlük en az
+												<strong>1,55 kat</strong>
 												olmalıdır.
+
+												<div class="mt-1">
+													İkinci skor
+													<strong>%10'un üzerindeyse</strong>,
+													güven farkı en az
+													<strong>14 puan</strong>
+													ve üstünlük en az
+													<strong>1,7 kat</strong>
+													olmalıdır.
+												</div>
 											</td>
 										</tr>
 
 										<tr>
 											<td class="text-nowrap">
-												%35 – %45
+												≥ %35 ve &lt; %45
 											</td>
 
 											<td>
 												Güven farkı en az
-												<strong>10 puan</strong>
+												<strong>9 puan</strong>
 												ve birinci skor ikinci skorun en az
-												<strong>1,6 katı</strong>
+												<strong>1,35 katı</strong>
 												olmalıdır.
 											</td>
 										</tr>
@@ -443,9 +459,9 @@
 
 											<td>
 												Güven farkı en az
-												<strong>8 puan</strong>
+												<strong>6 puan</strong>
 												ve birinci skor ikinci skorun en az
-												<strong>1,35 katı</strong>
+												<strong>1,15 katı</strong>
 												olmalıdır.
 											</td>
 										</tr>
@@ -454,9 +470,9 @@
 							</div>
 
 							<div class="text-muted">
-								İlgili aralıktaki koşulların tamamı karşılanırsa
-								talep tahmin edilen birime otomatik olarak atanır.
-								Koşullardan biri karşılanmazsa talep yönetici
+								Bulunduğu skor aralığındaki koşulların tamamını
+								karşılayan talepler tahmin edilen birime otomatik
+								atanır. Koşullardan biri karşılanmazsa talep yönetici
 								incelemesine bırakılır.
 							</div>
 						</div>

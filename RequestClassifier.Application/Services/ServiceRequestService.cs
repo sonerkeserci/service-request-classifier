@@ -640,9 +640,9 @@ public class ServiceRequestService : IServiceRequestService
         if (maxScore < 0.24f)
         {
             return
-                secondScore <= 0.09f &&
-                scoreMargin >= 0.08f &&
-                dominanceRatio >= 2.00f;
+                secondScore <= 0.10f &&
+                scoreMargin >= 0.07f &&
+                dominanceRatio >= 1.80f;
         }
 
         /*
@@ -653,9 +653,16 @@ public class ServiceRequestService : IServiceRequestService
          */
         if (maxScore < 0.35f)
         {
+            if (secondScore <= 0.10f)
+            {
+                return
+                    scoreMargin >= 0.11f &&
+                    dominanceRatio >= 1.55f;
+            }
+
             return
-                scoreMargin >= 0.12f &&
-                dominanceRatio >= 2.30f;
+            scoreMargin >= 0.14f &&
+            dominanceRatio >= 1.70f;
         }
 
         /*
@@ -667,8 +674,8 @@ public class ServiceRequestService : IServiceRequestService
         if (maxScore < 0.45f)
         {
             return
-                scoreMargin >= 0.10f &&
-                dominanceRatio >= 1.60f;
+                scoreMargin >= 0.09f &&
+                dominanceRatio >= 1.35f;
         }
 
         /*
@@ -678,7 +685,7 @@ public class ServiceRequestService : IServiceRequestService
          * category is almost tied with it.
          */
         return
-            scoreMargin >= 0.08f &&
-            dominanceRatio >= 1.35f;
+            scoreMargin >= 0.06f &&
+            dominanceRatio >= 1.15f;
     }
 }
