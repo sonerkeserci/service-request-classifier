@@ -1,0 +1,56 @@
+SERVICE REQUESTS V2 DATASET AUDIT
+=================================
+
+Original dataset:
+- Rows: 7,400
+- Categories: 74
+- Rows per category: 100
+- Empty Text/Category: 0
+- Exact duplicate Text: 0
+- Malformed TSV rows: 0
+
+Important findings:
+- The original data was structurally valid but heavily template-based.
+- 203 sentence patterns were shared by more than one category.
+- Several generic sentences appeared across all 74 categories more than 900 times.
+- Important real-world terms were absent from the original data:
+  lamba: 0, kanalizasyon: 0, rögar: 0, taksi: 0,
+  reklam: 0, tabela: 0, içme suyu: 0, bulanık: 0,
+  personel: 0, kaba: 0.
+- 'park' appeared in all 100 Otopark rows, which explains why park-lighting
+  requests could be pulled toward Otopark.
+
+Relabelled old rows:
+- Otopark -> Park İhlali: 46
+  (yasak park, engelli park yeri işgali, hospital-area parking disorder)
+- Zabıta -> Kaldırım ve Kamusal Alan İşgali: 18
+  (business occupation of the sidewalk)
+
+New/expanded labels:
+- Aydınlatma
+- Park İhlali
+- Ticari Taşımacılık
+- Kaldırım ve Kamusal Alan İşgali
+- Reklam ve Tabela Denetimi
+- Terk Edilmiş ve Hurda Araçlar
+- İçme Suyu ve Şebeke
+- Kanalizasyon, Rögar ve Atık Su
+
+V2 dataset:
+- Rows: 9,840
+- Categories: 82
+- Rows per category: exactly 120
+- Empty values: 0
+- Exact duplicate Text: 0
+- Tabs/newlines inside Text: 0
+- The reviewed 50 real-world requests were added with corrected labels.
+- Natural, title+description-style examples were added.
+- Problem category pairs were reinforced with contrastive wording.
+
+Approximate local control:
+- A TF-IDF + multinomial logistic-regression control model was used only
+  as a dataset sanity check; this is not the exact ML.NET model.
+- Original dataset on the 50 reviewed real-world requests: 30/50 correct.
+- V2 dataset, while excluding those exact 50 texts from training: 50/50 correct.
+- The real ML.NET SdcaMaximumEntropy result must still be measured after
+  retraining with the project trainer.
