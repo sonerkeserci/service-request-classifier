@@ -26,6 +26,8 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: var(--theme-page-bg);
+    color: var(--theme-text);
 }
 
 main {
@@ -76,9 +78,9 @@ main {
 .process-step {
     height: 100%;
     padding: 24px;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     background-color: #ffffff;
-    border: 1px solid #e9ecef;
 }
 
 .process-number {
@@ -88,7 +90,7 @@ main {
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background-color: #0d6efd;
+    background-color: var(--theme-primary);
     color: white;
     font-weight: 700;
 }
@@ -111,3 +113,68 @@ main {
         .navbar .nav-link.active {
             color: white !important;
         }
+
+.btn-primary {
+    color: white !important;
+    background-color: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+}
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        color: white !important;
+        background-color: var(--theme-primary-dark) !important;
+        border-color: var(--theme-primary-dark) !important;
+    }
+
+.btn-outline-primary {
+    color: var(--theme-primary) !important;
+    border-color: var(--theme-primary) !important;
+    background-color: transparent !important;
+}
+
+    .btn-outline-primary:hover,
+    .btn-outline-primary:focus {
+        color: white !important;
+        background-color: var(--theme-primary) !important;
+        border-color: var(--theme-primary) !important;
+    }
+
+a {
+    color: var(--theme-primary);
+}
+
+    a:hover {
+        color: var(--theme-primary-dark);
+    }
+
+.text-primary {
+    color: var(--theme-primary) !important;
+}
+
+.bg-primary {
+    background-color: var(--theme-primary) !important;
+}
+
+.text-bg-primary {
+    color: white !important;
+    background-color: var(--theme-primary) !important;
+}
+
+.bg-primary-subtle {
+    background-color: var(--theme-primary-light) !important;
+}
+
+.text-primary-emphasis {
+    color: var(--theme-primary-dark) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 0.2rem rgba(139, 43, 212, 0.18);
+}
+
+.card {
+    border-color: var(--theme-border);
+}
