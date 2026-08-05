@@ -1,3 +1,17 @@
+:root {
+    /* Main theme */
+    --theme-primary: #8b2bd4;
+    --theme-primary-dark: #6415a8;
+    --theme-primary-darker: #45106f;
+    --theme-primary-light: #ead8f8;
+    --theme-primary-soft: #f6effc;
+    /* Text and background */
+    --theme-text: #25212a;
+    --theme-muted: #716b78;
+    --theme-page-bg: #f8f6fa;
+    --theme-border: #e4dce9;
+}
+
 html {
     font-size: 14px;
 }
@@ -22,7 +36,7 @@ main {
     min-height: 560px;
     display: flex;
     align-items: center;
-    background: linear-gradient( 135deg,rgba(178, 98, 242, 1), rgba(66, 2, 117, 1));
+    background: linear-gradient( 135deg, #a844df 0%, var(--theme-primary) 48%, var(--theme-primary-dark) 100% );
 }
 
 .hero-title {
@@ -78,3 +92,22 @@ main {
     color: white;
     font-weight: 700;
 }
+
+.navbar {
+    background: linear-gradient( 90deg, var(--theme-primary-dark), var(--theme-primary) ) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 14px rgba(69, 16, 111, 0.18);
+}
+
+    .navbar .navbar-brand {
+        color: white !important;
+    }
+
+    .navbar .nav-link {
+        color: rgba(255, 255, 255, 0.72) !important;
+    }
+
+        .navbar .nav-link:hover,
+        .navbar .nav-link.active {
+            color: white !important;
+        }
