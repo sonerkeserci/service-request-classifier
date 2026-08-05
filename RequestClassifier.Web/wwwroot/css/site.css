@@ -22,7 +22,7 @@ main {
     min-height: 560px;
     display: flex;
     align-items: center;
-    background: linear-gradient( 135deg, rgba(13, 110, 253, 0.95), rgba(33, 37, 41, 0.92) );
+    background: linear-gradient( 135deg,rgba(178, 98, 242, 1), rgba(66, 2, 117, 1));
 }
 
 .hero-title {
